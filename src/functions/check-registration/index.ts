@@ -7,7 +7,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'checkRegistration',
+        path: 'check-registration',
         request: {
           schemas: {
             'application/json': schema,
