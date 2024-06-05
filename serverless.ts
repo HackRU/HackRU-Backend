@@ -1,7 +1,7 @@
 import type { AWS } from '@serverless/typescript';
 
 import hello from '@functions/hello';
-import check_registration  from '@functions/check_registration';
+import check_registration from '@functions/check_registration';
 
 const serverlessConfiguration: AWS = {
   service: 'hackru-backend',
