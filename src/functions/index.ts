@@ -1,2 +1,2 @@
 export { default as hello } from './hello';
-export { default as check_registration } from './check_registration';
+export { default as checkRegistration } from './check-registration';

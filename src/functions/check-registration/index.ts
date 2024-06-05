@@ -1,5 +1,5 @@
-import schema from './schema';
 import { handlerPath } from '@libs/handler-resolver';
+import schema from './schema';
 
 export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
@@ -7,7 +7,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'check_registration',
+        path: 'checkRegistration',
         request: {
           schemas: {
             'application/json': schema,
