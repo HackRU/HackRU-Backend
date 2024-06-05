@@ -5,12 +5,12 @@ import { middyfy } from '@libs/lambda';
 import schema from './schema';
 
 import { MongoDB } from '../../util';
-import * as config from '../../config';
+import * as config from '../../config'; // eslint-disable-line
 
-const check_Registration: ValidatedEventAPIGatewayProxyEvent<
+const checkRegistration: ValidatedEventAPIGatewayProxyEvent<
   typeof schema
 > = async (event) => {
-  const registration_status = await queryByEmail(
+  const registrationStatus = await queryByEmail(
     event.body.email,
     config.DEV_MONGO_URI
   );
@@ -18,7 +18,7 @@ const check_Registration: ValidatedEventAPIGatewayProxyEvent<
     statusCode: 200,
     body: JSON.stringify({
       email: event.body.email,
-      status: registration_status,
+      status: registrationStatus,
     }),
   };
 };
@@ -41,9 +41,9 @@ async function queryByEmail(
     // Query the object based on the email
     const result = await collection.findOne({ email });
 
-    // If the object exists, return its registration_status
+    // If the object exists, return its registrationStatus
     if (result) {
-      return result.registration_status;
+      return result.registrationStatus;
     } else {
       // If the object does not exist, return null or throw an error
       return null;
@@ -54,4 +54,4 @@ async function queryByEmail(
   }
 }
 
-export const main = middyfy(check_Registration);
+export const main = middyfy(checkRegistration);

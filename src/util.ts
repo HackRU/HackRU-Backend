@@ -46,7 +46,7 @@ export class MongoDB {
 //         const collection = database.collection('users');
 
 //         const result = await collection.findOne({ "email": "test@test.org" });
-//         console.log(result['registration_status'])
+//         console.log(result['registrationStatus'])
 //     })
 //     .catch((error) => {
 //         console.error('Error connecting to MongoDB:', error);
