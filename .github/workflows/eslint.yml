@@ -1,4 +1,4 @@
-name: prettier
+name: eslint
 
 on:
   push:
@@ -6,13 +6,13 @@ on:
   pull_request:
 
 jobs:
-  prettier:
+  eslint:
     runs-on: ubuntu-latest
-    name: Check
+    name: check
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '20'
-      - name: npx prettier
-        run: npx prettier --check .
+      - name: npx eslint
+        run: npx eslint src/**/*.ts

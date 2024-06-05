@@ -6,5 +6,15 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "prettier.configPath": ".prettierrc",
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "eslint.options": {
+    "overrideConfigFile": ".eslintrc",
+    "rulePaths": ["eslint-rules"]
+  },
   "editor.formatOnSave": true
 }
