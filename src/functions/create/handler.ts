@@ -5,7 +5,7 @@ import { MongoDB } from '../../util';
 import * as config from '../../config';
 import { middyfy } from '@libs/lambda';
 
-const createUser: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
+const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
   const validRegistrationTime = registrationTime();
@@ -90,4 +90,4 @@ const registrationTime = (): boolean => {
   return now >= registrationStart && now <= registrationEnd;
 };
 
-export const main = middyfy(createUser);
+export const main = middyfy(create);

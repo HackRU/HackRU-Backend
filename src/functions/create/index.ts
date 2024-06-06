@@ -2,16 +2,18 @@ import schema from './schema';
 
 import { handlerPath } from '@libs/handler-resolver';
 export default {
-    handler: `${handlerPath(__dirname)}/handler.main`,
-    events: [{
-        http: {
-            method: 'post', 
-            path: 'create-user',
-            request: {
-                schemas: {
-                    'application/json': schema,
-                }
-            }
-        }
-    }]
-}
+  handler: `${handlerPath(__dirname)}/handler.main`,
+  events: [
+    {
+      http: {
+        method: 'post',
+        path: 'create',
+        request: {
+          schemas: {
+            'application/json': schema,
+          },
+        },
+      },
+    },
+  ],
+};
