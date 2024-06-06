@@ -10,7 +10,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 ) => {
   const validRegistrationTime = registrationTime();
   //check link
-  if (validRegistrationTime) {
+  if (!validRegistrationTime) {
     return {
       statusCode: 403,
       body: 'Registration is closed!',
