@@ -19,17 +19,17 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 
   const u_email = event.body.email;
   const password = event.body.password;
+
   //hash password
 
   try {
     const db = MongoDB.getInstance(config.DEV_MONGO_URI);
     await db.connect();
-    const client = db.getClient();
 
-    const users = client.db('dev').collection(config.DB_COLLECTIONS['users']);
+    const users = db.getCollection('users');
     const existingUser = await users.findOne({ u_email });
 
-    if (!existingUser) {
+    if (existingUser) {
       //link
       return {
         statusCode: 400,
@@ -50,21 +50,21 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       },
       votes: 0,
       password: password,
-      github: event.queryStringParameters?.github,
-      major: event.queryStringParameters?.major,
-      short_answer: event.queryStringParameters?.short_answer,
-      shirt_size: event.queryStringParameters?.shirt_size,
-      first_name: event.queryStringParameters?.github,
-      last_name: event.queryStringParameters?.last_name,
-      dietary_restrictions: event.queryStringParameters?.dietary_restrictions,
-      special_needs: event.queryStringParameters?.special_needs,
-      date_of_birth: event.queryStringParameters?.date_of_birth,
-      school: event.queryStringParameters?.school,
-      grad_year: event.queryStringParameters?.grad_year,
-      gender: event.queryStringParameters?.gender,
-      level_of_study: event.queryStringParameters?.level_of_study,
-      ethnicity: event.queryStringParameters?.ethnicity,
-      phone_numer: event.queryStringParameters?.phone_number,
+      github: event.body.github,
+      major: event.body.major,
+      short_answer: event.body.short_answer,
+      shirt_size: event.body.shirt_size,
+      first_name: event.body.github,
+      last_name: event.body.last_name,
+      dietary_restrictions: event.body.dietary_restrictions,
+      special_needs: event.body.special_needs,
+      date_of_birth: event.body.date_of_birth,
+      school: event.body.school,
+      grad_year: event.body.grad_year,
+      gender: event.body.gender,
+      level_of_study: event.body.level_of_study,
+      ethnicity: event.body.ethnicity,
+      phone_numer: event.body.phone_number,
       day_of: {
         checkIn: false,
       },
