@@ -36,7 +36,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         body: 'Duplicate user!',
       };
     }
-    //add registration status
+
     const doc = {
       email: uEmail,
       role: {
@@ -65,12 +65,14 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       level_of_study: event.body.level_of_study,
       ethnicity: event.body.ethnicity,
       phone_numer: event.body.phone_number,
+      registration_status: event.body.registration_status ?? 'unregistered',
       day_of: {
         checkIn: false,
       },
     };
 
     await users.insertOne(doc);
+
     return {
       statusCode: 200,
       body: 'User created!',
@@ -83,7 +85,6 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 const registrationTime = (): boolean => {
   const now = new Date().getTime();
 
-  //arbitrary start and end dates for registration for now
   const registrationStart = new Date(config.registrationStart).getTime();
   const registrationEnd = new Date(config.registrationEnd).getTime();
 
