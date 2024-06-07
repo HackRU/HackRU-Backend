@@ -54,7 +54,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       major: event.body.major,
       short_answer: event.body.short_answer,
       shirt_size: event.body.shirt_size,
-      first_name: event.body.github,
+      first_name: event.body.first_name,
       last_name: event.body.last_name,
       dietary_restrictions: event.body.dietary_restrictions,
       special_needs: event.body.special_needs,
