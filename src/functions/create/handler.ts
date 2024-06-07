@@ -27,7 +27,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     await db.connect();
 
     const users = db.getCollection('users');
-    const existingUser = await users.findOne({ uEmail });
+    const existingUser = await users.findOne({ email: uEmail });
 
     if (existingUser) {
       //link
