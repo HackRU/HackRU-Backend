@@ -1,13 +1,13 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
+import { middyfy } from '@libs/lambda';
+import * as bcrypt from 'bcrypt';
+
 import schema from './schema';
 
 import { MongoDB } from '../../util';
 import * as config from '../../config';
-import { middyfy } from '@libs/lambda';
 
-const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const validRegistrationTime = registrationTime();
   //check link
   if (!validRegistrationTime) {
@@ -17,17 +17,17 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     };
   }
 
-  const u_email = event.body.email;
-  const password = event.body.password;
-
-  //hash password
+  const uEmail = event.body.email;
+  let password = event.body.password;
 
   try {
+    password = await bcrypt.hash(password, 8);
+
     const db = MongoDB.getInstance(config.DEV_MONGO_URI);
     await db.connect();
 
     const users = db.getCollection('users');
-    const existingUser = await users.findOne({ u_email });
+    const existingUser = await users.findOne({ uEmail });
 
     if (existingUser) {
       //link
@@ -38,7 +38,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     }
     //add registration status
     const doc = {
-      email: u_email,
+      email: uEmail,
       role: {
         hacker: true,
         volunteer: false,
