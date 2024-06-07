@@ -7,7 +7,7 @@ import schema from './schema';
 import { MongoDB } from '../../util';
 import * as config from '../../config'; // eslint-disable-line
 
-const checkRegistration: ValidatedEventAPIGatewayProxyEvent<
+const check_registration: ValidatedEventAPIGatewayProxyEvent<
   typeof schema
 > = async (event) => {
   const registrationStatus = await queryByEmail(
@@ -54,4 +54,4 @@ async function queryByEmail(
   }
 }
 
-export const main = middyfy(checkRegistration);
+export const main = middyfy(check_registration);

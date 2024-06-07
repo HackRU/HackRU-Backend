@@ -1,13 +1,12 @@
-import { handlerPath } from '@libs/handler-resolver';
 import schema from './schema';
-
+import { handlerPath } from '@libs/handler-resolver';
 export default {
   handler: `${handlerPath(__dirname)}/handler.main`,
   events: [
     {
       http: {
         method: 'post',
-        path: 'check-registration',
+        path: 'attend_event',
         request: {
           schemas: {
             'application/json': schema,
