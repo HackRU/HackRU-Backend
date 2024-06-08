@@ -8,6 +8,8 @@ import schema from './schema';
 import { MongoDB } from '../../util';
 import * as config from '../../config'; // eslint-disable-line
 
+import * as jwt from 'jsonwebtoken';
+
 const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
@@ -24,7 +26,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const existingEmail = await users.findOne({ email: user_email });
     if (existingEmail) {
       // if user email exist but password doesn't match, return error
-      const hashedPassword = existingEmail.password.toString('utf8');;
+      const hashedPassword = existingEmail.password.toString('utf8');
       const password_match = await bcrypt.compare(
         user_password,
         hashedPassword
@@ -34,30 +36,38 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
         return {
           statusCode: 403,
           body: JSON.stringify({
-            "statusCode": 403,
-            "message": "Wrong password" 
-          })
+            statusCode: 403,
+            message: 'Wrong password',
+          }),
         };
       }
     } else {
       // user email doesn't exist
       return {
-        statusCode: 403, 
+        statusCode: 403,
         body: JSON.stringify({
-          "statusCode": 403,
-          "message": "Invalid email" 
-        })
+          statusCode: 403,
+          message: 'Invalid email',
+        }),
       };
     }
 
     // password match, now we build a JWT to use as an authentication token
 
+    // builds token
+    const token = jwt.sign(
+      { email: user_email, id: existingEmail._id },
+      config.JWT_SECRET,
+      { expiresIn: '3d' }
+    );
+
     return {
       statusCode: 200,
       body: JSON.stringify({
-        "statusCode": 200,
-        "message": "Delete this and continue from here" 
-      })
+        statusCode: 200,
+        message: 'Authentication Successful',
+        token,
+      }),
     };
   } catch (error) {
     console.error('Error authorizing user', error);
