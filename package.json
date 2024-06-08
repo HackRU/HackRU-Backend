@@ -12,7 +12,7 @@
   "dependencies": {
     "@middy/core": "^3.4.0",
     "@middy/http-json-body-parser": "^3.4.0",
-    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "mongodb": "^6.7.0"
   },
@@ -20,7 +20,7 @@
     "@eslint/js": "^9.4.0",
     "@serverless/typescript": "^3.38.0",
     "@types/aws-lambda": "^8.10.71",
-    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^14.14.25",
     "esbuild": "^0.14.11",
