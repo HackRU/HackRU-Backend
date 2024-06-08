@@ -57,7 +57,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const token = jwt.sign(
       { email: user_email, id: existingEmail._id },
       config.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '3d' }
     );
 
     return {
