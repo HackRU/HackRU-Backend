@@ -2,6 +2,7 @@ import type { AWS } from '@serverless/typescript';
 
 import hello from '@functions/hello';
 import checkRegistration from '@functions/check-registration';
+import authorize from '@functions/authorize';
 
 const serverlessConfiguration: AWS = {
   service: 'hackru-backend',
@@ -21,7 +22,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, checkRegistration },
+  functions: { hello, checkRegistration, authorize },
   package: { individually: true },
   custom: {
     esbuild: {

@@ -43,7 +43,7 @@ async function queryByEmail(
 
     // If the object exists, return its registrationStatus
     if (result) {
-      return result.registrationStatus;
+      return result.registration_status;
     } else {
       // If the object does not exist, return null or throw an error
       return null;
