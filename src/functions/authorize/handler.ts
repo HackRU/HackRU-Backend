@@ -8,7 +8,7 @@ import schema from './schema';
 import { MongoDB } from '../../util';
 import * as config from '../../config'; // eslint-disable-line
 
-import * as jwt from 'jsonwebtoken'
+import * as jwt from 'jsonwebtoken';
 
 const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
