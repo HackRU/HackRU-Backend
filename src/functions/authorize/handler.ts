@@ -54,6 +54,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 
     // password match, now we build a JWT to use as an authentication token
 
+    // builds token
     const token = jwt.sign(
       { email: user_email, id: existingEmail._id },
       config.JWT_SECRET,
