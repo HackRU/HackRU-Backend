@@ -9,7 +9,7 @@ import * as config from '../../config';
 
 const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
 
-    const attend_event = await queryByEmail(event.body.email, config.DEV_MONGO_URI)
+    const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
     if(attend_event === null) {
         return {
             statusCode: 404,
@@ -18,7 +18,7 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
             })
         }
     }
-    if(attend_event.registration_status === "registered") {
+    if(event.body.event > 0 && event.body.again === false) {
         return {
             statusCode: 402, 
             body: JSON.stringify({  
@@ -26,14 +26,11 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
             })
         }
     } else {
-
-        // Updates the user's registration status to registered on the database
-        await attend_event.updateOne( {registration: 'registered'} );
-
+        attendEvent(event.body.qr, config.DEV_MONGO_URI, event.body.event);
         return {
             statusCode: 200, 
             body: JSON.stringify({  
-                email: event.body.email
+                message: "user successfully checked into event"
             })
         }
     }
@@ -59,6 +56,27 @@ async function queryByEmail(email: string, mongoURI: string) {
             // If the object does not exist, return null or throw an error
             return null;
         }
+    } catch (error) {
+        console.error('Error querying MongoDB:', error);
+        throw error;
+    } 
+}
+
+async function attendEvent(email: string, mongoURI: string, event: number) {
+    // Connect to MongoDB
+    try {
+        const db = MongoDB.getInstance(mongoURI);
+        await db.connect();
+        const client = db.getClient()
+
+        // Access the database and collection
+        const collection = client.db('dev').collection(config.DB_COLLECTIONS['users']);
+
+        // Query the object based on the email
+        const result = await collection.findOne({ email });
+
+        collection.updateOne({ ...result }, { $set: { dayOf: { event: event + 1 } } });
+        
     } catch (error) {
         console.error('Error querying MongoDB:', error);
         throw error;
