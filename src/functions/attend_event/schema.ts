@@ -5,8 +5,7 @@ export default {
         token: { type: 'string' },
         qr: { type: 'string' },
         event: { type: ' string'},
-        again: { type: 'boolean'},
-        email: { type: 'string'}
+        again: { type: 'boolean'}
     },
-    required: ['email']
+    required: ['qr', 'token', 'event']
   } as const;
