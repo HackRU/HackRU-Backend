@@ -13,8 +13,8 @@ import * as jwt from 'jsonwebtoken';
 const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
-  const user_email = event.body.email;
-  const user_password = event.body.password;
+  const userEmail = event.body.email;
+  const userPassword = event.body.password;
 
   // check to see if email is present in DB
   try {
@@ -23,12 +23,12 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const client = db.getClient();
     const users = client.db('dev').collection('users');
 
-    const existingEmail = await users.findOne({ email: user_email });
+    const existingEmail = await users.findOne({ email: userEmail });
     if (existingEmail) {
       // if user email exist but password doesn't match, return error
       const hashedPassword = existingEmail.password.toString('utf8');
       const password_match = await bcrypt.compare(
-        user_password,
+        userPassword,
         hashedPassword
       );
 
@@ -56,7 +56,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 
     // builds token
     const token = jwt.sign(
-      { email: user_email, id: existingEmail._id },
+      { email: userEmail, id: existingEmail._id },
       config.JWT_SECRET,
       { expiresIn: '3d' }
     );
