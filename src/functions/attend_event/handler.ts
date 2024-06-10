@@ -20,14 +20,14 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     };
   }
   if (!attend_event.day_of) {
-    attend_event.day_of = {};
+    attend_event.day_of = { event: {} };
   }
   if (!attend_event.day_of.event) {
-    attend_event.day_of.event = new Map();
+    attend_event.day_of.event = {};
   }
   if (
-    attend_event.day_of.event.has(event.body.event) &&
-    attend_event.day_of.event.get(event.body.event) > 0 &&
+    attend_event.day_of.event[event.body.event] &&
+    attend_event.day_of.event[event.body.event] > 0 &&
     event.body.again === false
   ) {
     return {
@@ -91,21 +91,31 @@ async function attendEvent(email: string, mongoURI: string, event: string) {
     const result = await collection.findOne({ email });
 
     if (!result.day_of) {
-      result.day_of = {};
+      result.day_of = { event: {} };
     }
     if (!result.day_of.event) {
-      result.day_of.event = new Map();
-      result.day_of.event.set(event, 1);
-      collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
+      result.day_of.event = {};
+      result.day_of.event[event] = 1;
+      await collection.updateOne(
+        { email },
+        { $set: { 'day_of.event': result.day_of.event } }
+      );
       return;
     }
-    if (result.day_of.event.has(event)) {
-      result.day_of.event.set(event, result.day_of.event.get(event) + 1);
-      collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
+    if (result.day_of.event[event]) {
+      result.day_of.event[event] += 1;
+      await collection.updateOne(
+        { email },
+        { $set: { 'day_of.event': result.day_of.event } }
+      );
       return;
     } else {
-      result.day_of.event.set(event, 1);
-      collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
+      result.day_of.event[event] = 1;
+      await collection.updateOne(
+        { email },
+        { $set: { 'day_of.event': result.day_of.event } }
+      );
+      return;
     }
   } catch (error) {
     console.error('Error querying MongoDB:', error);
