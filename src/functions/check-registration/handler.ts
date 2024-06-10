@@ -34,9 +34,7 @@ async function queryByEmail(
     const client = db.getClient();
 
     // Access the database and collection
-    const collection = client
-      .db('dev')
-      .collection('users');
+    const collection = client.db('dev').collection('users');
 
     // Query the object based on the email
     const result = await collection.findOne({ email });
