@@ -21,11 +21,13 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   let password = event.body.password;
 
   try {
+    //hash password
     password = await bcrypt.hash(password, 8);
 
     const db = MongoDB.getInstance(config.DEV_MONGO_URI);
     await db.connect();
 
+    //try to pull user from db by email to ensure there is no duplicate registration
     const users = db.getCollection('users');
     const existingUser = await users.findOne({ email: uEmail });
 
@@ -83,6 +85,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 };
 
 const registrationTime = (): boolean => {
+  //records time of registration and checks if it is within registration start and end dates
   const now = new Date().getTime();
 
   const registrationStart = new Date(config.registrationStart).getTime();
