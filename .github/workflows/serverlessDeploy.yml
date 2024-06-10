@@ -26,11 +26,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Print path of config.ts
-        run: echo "Path to config.ts, $(pwd)/src/config.ts"
-
       - name: Copy config.ts
-        run: cp src/config.ts src/
+        run: cp $GITHUB_WORKSPACE/src/config.ts src/
 
       - run: npm ci
       - name: serverless deploy
