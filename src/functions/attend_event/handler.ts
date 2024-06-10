@@ -19,7 +19,7 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       }),
     };
   }
-  if(!attend_event.day_of) {
+  if (!attend_event.day_of) {
     attend_event.day_of = {};
   }
   if (!attend_event.day_of.event) {
@@ -90,24 +90,23 @@ async function attendEvent(email: string, mongoURI: string, event: string) {
     // Query the object based on the email
     const result = await collection.findOne({ email });
 
-    if(!result.day_of) {
-        result.day_of = {};
+    if (!result.day_of) {
+      result.day_of = {};
     }
-    if(!result.day_of.event) { 
-        result.day_of.event = new Map();
-        result.day_of.event.set(event, 1);
-        collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
-        return;
+    if (!result.day_of.event) {
+      result.day_of.event = new Map();
+      result.day_of.event.set(event, 1);
+      collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
+      return;
     }
     if (result.day_of.event.has(event)) {
-        result.day_of.event.set(event, result.day_of.event.get(event) + 1);
-        collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
-        return;
+      result.day_of.event.set(event, result.day_of.event.get(event) + 1);
+      collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
+      return;
     } else {
-        result.day_of.event.set(event, 1);
-        collection.updateOne({ ...  result }, { dayOf_event: result.day_of.event });
+      result.day_of.event.set(event, 1);
+      collection.updateOne({ ...result }, { dayOf_event: result.day_of.event });
     }
-     
   } catch (error) {
     console.error('Error querying MongoDB:', error);
     throw error;
