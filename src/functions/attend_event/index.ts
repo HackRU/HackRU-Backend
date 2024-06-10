@@ -12,7 +12,7 @@ export default {
             'application/json': schema,
           },
         },
-        cors: 'true',
+        cors: true,
       },
     },
   ],
