@@ -87,7 +87,10 @@ async function attendEvent(email: string, mongoURI: string, eventName: string) {
     // Query the object based on the email
     const result = await collection.findOne({ email });
 
-    const updateEvent = result.day_of.event;
+    let updateEvent = result.day_of.event;
+    if (updateEvent === null) {
+        updateEvent = new Map();
+    }
     if (updateEvent.has(eventName))
       updateEvent.set(eventName, updateEvent.get(eventName) + 1);
     else updateEvent.set(eventName, updateEvent.get(eventName) + 1);
