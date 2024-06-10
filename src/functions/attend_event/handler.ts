@@ -79,7 +79,8 @@ async function attendEvent(email: string, mongoURI: string, eventName: string) {
         const result = await collection.findOne({ email });
 
         const updateEvent = result.day_of.event;
-        updateEvent.set(eventName, updateEvent.get(eventName) + 1); 
+        if (updateEvent.has(eventName)) updateEvent.set(eventName, updateEvent.get(eventName) + 1); 
+        else updateEvent.set(eventName, updateEvent.get(eventName) + 1);
         collection.updateOne({ ...result }, { dayOf_event: updateEvent});
         
     } catch (error) {
