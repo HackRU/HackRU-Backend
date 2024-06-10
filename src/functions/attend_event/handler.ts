@@ -22,9 +22,6 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   if (!attend_event.day_of) {
     attend_event.day_of = { event: {} };
   }
-  if (!attend_event.day_of.event) {
-    attend_event.day_of.event = {};
-  }
   if (
     attend_event.day_of.event[event.body.event] &&
     attend_event.day_of.event[event.body.event] > 0 &&
@@ -92,15 +89,6 @@ async function attendEvent(email: string, mongoURI: string, event: string) {
 
     if (!result.day_of) {
       result.day_of = { event: {} };
-    }
-    if (!result.day_of.event) {
-      result.day_of.event = {};
-      result.day_of.event[event] = 1;
-      await collection.updateOne(
-        { email },
-        { $set: { 'day_of.event': result.day_of.event } }
-      );
-      return;
     }
     if (result.day_of.event[event]) {
       result.day_of.event[event] += 1;
