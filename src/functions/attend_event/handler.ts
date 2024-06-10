@@ -10,7 +10,7 @@ import * as config from '../../config';
 const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
 
     const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
-    if(attend_event === null) {
+    if (attend_event === null) {
         return {
             statusCode: 404,
             body: JSON.stringify({
