@@ -18,9 +18,12 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
             })
         }
     }
-    if(event.body.event > 0 && event.body.again === false) {
+    if (attend_event.day_of.event === null) {
+        attend_event.day_of.event = new Map();
+    }
+    if (attend_event.day_of.event.has(event.body.event) && attend_event.day_of.event.get(event.body.event) > 0 && event.body.again === false) {
         return {
-            statusCode: 402, 
+            statusCode: 409, 
             body: JSON.stringify({  
                 message: "user already checked into event"
             })
@@ -62,7 +65,7 @@ async function queryByEmail(email: string, mongoURI: string) {
     } 
 }
 
-async function attendEvent(email: string, mongoURI: string, event: number) {
+async function attendEvent(email: string, mongoURI: string, eventName: string) {
     // Connect to MongoDB
     try {
         const db = MongoDB.getInstance(mongoURI);
@@ -75,7 +78,9 @@ async function attendEvent(email: string, mongoURI: string, event: number) {
         // Query the object based on the email
         const result = await collection.findOne({ email });
 
-        collection.updateOne({ ...result }, { $set: { dayOf: { event: event + 1 } } });
+        const updateEvent = result.day_of.event;
+        updateEvent.set(eventName, updateEvent.get(eventName) + 1); 
+        collection.updateOne({ ...result }, { dayOf_event: updateEvent});
         
     } catch (error) {
         console.error('Error querying MongoDB:', error);
