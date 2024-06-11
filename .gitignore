@@ -1,5 +1,7 @@
 # HackRU-specific Files
 config.ts
+.env
+.env.keys
 
 # Logs
 logs
@@ -135,3 +137,8 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+
+.env*
+.flaskenv*
+!.env.project
+!.env.vault
