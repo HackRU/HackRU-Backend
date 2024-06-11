@@ -29,7 +29,6 @@ async function queryByEmail(email: string, mongoURI: string): Promise<string | n
 
     const collection = client.db('dev').collection(config.DB_COLLECTIONS['users']);
 
-
     // Query the object based on the email
     const result = await collection.findOne({ email });
 
