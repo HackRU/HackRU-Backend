@@ -1,19 +1,13 @@
-name: Serverless deploy upon merged pull request
+name: Serverless deploy
 
 on:
   push:
     branches:
       - main
       - dev
-  pull_request:
-    types: [closed]
-    branches:
-      - main
-      - dev
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true || github.event_name == 'push'
     name: deploy
     runs-on: ubuntu-latest
     strategy:
