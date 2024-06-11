@@ -13,7 +13,7 @@ on:
 
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+    if: github.event.pull_request.merged == true || github.event_name == 'push'
     name: deploy
     runs-on: ubuntu-latest
     strategy:
@@ -25,6 +25,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+
+      - name: Copy config.ts
+        run: cp $GITHUB_WORKSPACE/src/config.ts src/
+
       - run: npm ci
       - name: serverless deploy
         uses: serverless/github-action@v3.2
