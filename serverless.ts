@@ -21,12 +21,12 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
-      DOTENV_KEY: process.env.DOTENV_KEY
+      DOTENV_KEY: process.env.DOTENV_KEY,
     },
   },
   // import the function via paths
   functions: { hello, checkRegistration },
-  package: { individually: true },
+  package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
       bundle: true,
