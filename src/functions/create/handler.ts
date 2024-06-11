@@ -7,6 +7,10 @@ import schema from './schema';
 import { MongoDB } from '../../util';
 import * as config from '../../config';
 
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
 const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const validRegistrationTime = registrationTime();
   //check link
@@ -24,7 +28,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     //hash password
     password = await bcrypt.hash(password, 8);
 
-    const db = MongoDB.getInstance(config.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
     await db.connect();
 
     //try to pull user from db by email to ensure there is no duplicate registration
