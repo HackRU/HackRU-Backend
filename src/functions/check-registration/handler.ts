@@ -10,9 +10,8 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-
 const checkRegistration: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
-  const registrationStatus = await queryByEmail(event.body.email, config.DEV_MONGO_URI);
+  const registrationStatus = await queryByEmail(event.body.email, process.env.DEV_MONGO_URI);
   return {
     statusCode: 200,
     body: JSON.stringify({
