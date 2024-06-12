@@ -22,6 +22,7 @@ const checkRegistration: ValidatedEventAPIGatewayProxyEvent<
     body: JSON.stringify({
       email: event.body.email,
       status: registrationStatus,
+      message: process.env.HELLO
     }),
   };
 };
