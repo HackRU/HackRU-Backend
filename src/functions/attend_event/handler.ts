@@ -11,6 +11,7 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
   const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
+  console.log(attend_event);
   if (attend_event === null) {
     return {
       statusCode: 404,
