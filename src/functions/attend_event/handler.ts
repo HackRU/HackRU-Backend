@@ -7,7 +7,7 @@ import schema from './schema';
 import { MongoDB } from '../../util';
 import * as config from '../../config';
 
-const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
+const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
   const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
@@ -35,7 +35,7 @@ const attend_event: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       }),
     };
   } else {
-    attendEvent(event.body.qr, config.DEV_MONGO_URI, event.body.event);
+    attendUserEvent(event.body.qr, config.DEV_MONGO_URI, event.body.event);
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -73,7 +73,7 @@ async function queryByEmail(email: string, mongoURI: string) {
   }
 }
 
-async function attendEvent(email: string, mongoURI: string, event: string) {
+async function attendUserEvent(email: string, mongoURI: string, event: string) {
   // Connect to MongoDB
   try {
     const db = MongoDB.getInstance(mongoURI);
@@ -112,4 +112,4 @@ async function attendEvent(email: string, mongoURI: string, event: string) {
   }
 }
 
-export const main = middyfy(attend_event);
+export const main = middyfy(attendEvent);
