@@ -13,8 +13,6 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   // Query the user by email
   const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
 
-  console.log(attend_event);
-
   // If the user does not exist, return a 404
   if (attend_event === null) {
     return {
@@ -24,9 +22,12 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       }),
     };
   }
-  if (!attend_event.day_of) {
+
+  // checks to see if the day_of object exists
+  if (!attend_event.day_of || !attend_event.day_of.event) {
     attend_event.day_of = { event: {} };
   }
+  // checks if the user has already checked into the event, and if so checks if they can check in again
   if (
     attend_event.day_of.event[event.body.event] &&
     attend_event.day_of.event[event.body.event] > 0 &&
@@ -39,7 +40,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       }),
     };
   } else {
-    attendUserEvent(event.body.qr, config.DEV_MONGO_URI, event.body.event);
+    attendUserEvent(attend_event, config.DEV_MONGO_URI, event.body.event);
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -50,8 +51,8 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 };
 
 async function queryByEmail(email: string, mongoURI: string) {
-  // Connect to MongoDB
   try {
+    // Connect to MongoDB
     const client = await connectToClient(mongoURI);
 
     // Access the database and collection
@@ -75,43 +76,36 @@ async function queryByEmail(email: string, mongoURI: string) {
   }
 }
 
-async function attendUserEvent(email: string, mongoURI: string, event: string) {
-  // Connect to MongoDB
-  try {
-    const client = await connectToClient(mongoURI);
+async function attendUserEvent(attend_event, mongoURI: string, event: string) {
+  // connect to MongoDb client
+  const client = await connectToClient(mongoURI);
 
-    // Access the database and collection
-    const collection = client
-      .db('dev')
-      .collection(config.DB_COLLECTIONS['users']);
+  // Access the database and collection
+  const collection = client
+    .db('dev')
+    .collection(config.DB_COLLECTIONS['users']);
 
-    // Query the object based on the email
-    const result = await collection.findOne({ email });
+  const email = attend_event.email;
 
-    if (!result.day_of) {
-      result.day_of = { event: {} };
-    }
-    if (result.day_of.event[event]) {
-      result.day_of.event[event] += 1;
-      await collection.updateOne(
-        { email },
-        { $set: { 'day_of.event': result.day_of.event } }
-      );
-      return;
-    } else {
-      result.day_of.event[event] = 1;
-      await collection.updateOne(
-        { email },
-        { $set: { 'day_of.event': result.day_of.event } }
-      );
-      return;
-    }
-  } catch (error) {
-    console.error('Error querying MongoDB:', error);
-    throw error;
+  // checks if the event exists in the day_of object, and if so increments the count
+  if (attend_event.day_of.event[event]) {
+    attend_event.day_of.event[event] += 1;
+    await collection.updateOne(
+      { email: email },
+      { $set: { 'day_of.event': attend_event.day_of.event } }
+    );
+    return;
+  } else {
+    attend_event.day_of.event[event] = 1;
+    await collection.updateOne(
+      { email: email },
+      { $set: { 'day_of.event': attend_event.day_of.event } }
+    );
+    return;
   }
 }
 
+// connects ti the MongoDB client
 async function connectToClient(mongoURI: string) {
   try {
     const db = MongoDB.getInstance(mongoURI);
