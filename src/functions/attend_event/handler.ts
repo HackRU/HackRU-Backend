@@ -13,6 +13,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   // Query the user by email
   const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
 
+  console.log(attend_event);
   // If the user does not exist, return a 404
   if (attend_event === null) {
     return {
@@ -76,7 +77,7 @@ async function queryByEmail(email: string, mongoURI: string) {
   }
 }
 
-async function attendUserEvent(attend_event, mongoURI: string, event: string) {
+async function attendUserEvent(attend_event: any, mongoURI: string, event: string) {
   // connect to MongoDb client
   const client = await connectToClient(mongoURI);
 
