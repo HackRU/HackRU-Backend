@@ -10,8 +10,12 @@ import * as config from '../../config';
 const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
   event
 ) => {
+  // Query the user by email
   const attend_event = await queryByEmail(event.body.qr, config.DEV_MONGO_URI);
+
   console.log(attend_event);
+
+  // If the user does not exist, return a 404
   if (attend_event === null) {
     return {
       statusCode: 404,
@@ -48,9 +52,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 async function queryByEmail(email: string, mongoURI: string) {
   // Connect to MongoDB
   try {
-    const db = MongoDB.getInstance(mongoURI);
-    await db.connect();
-    const client = db.getClient();
+    const client = await connectToClient(mongoURI);
 
     // Access the database and collection
     const collection = client
