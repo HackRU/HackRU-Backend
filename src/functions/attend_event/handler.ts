@@ -76,9 +76,7 @@ async function queryByEmail(email: string, mongoURI: string) {
 async function attendUserEvent(email: string, mongoURI: string, event: string) {
   // Connect to MongoDB
   try {
-    const db = MongoDB.getInstance(mongoURI);
-    await db.connect();
-    const client = db.getClient();
+    const client = await connectToClient(mongoURI);
 
     // Access the database and collection
     const collection = client
@@ -108,6 +106,17 @@ async function attendUserEvent(email: string, mongoURI: string, event: string) {
     }
   } catch (error) {
     console.error('Error querying MongoDB:', error);
+    throw error;
+  }
+}
+
+async function connectToClient(mongoURI: string) {
+  try {
+    const db = MongoDB.getInstance(mongoURI);
+    await db.connect();
+    return db.getClient();
+  } catch (error) {
+    console.error('Error connecting to MongoDB:', error);
     throw error;
   }
 }
