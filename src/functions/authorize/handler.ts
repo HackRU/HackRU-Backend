@@ -6,7 +6,9 @@ import * as bcrypt from 'bcryptjs';
 import schema from './schema';
 
 import { MongoDB } from '../../util';
-import * as config from '../../config'; // eslint-disable-line
+import * as path from 'path';
+import * as dotenv from 'dotenv';
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import * as jwt from 'jsonwebtoken';
 
@@ -18,7 +20,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
 
   // check to see if email is present in DB
   try {
-    const db = MongoDB.getInstance(config.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
     await db.connect();
     const client = db.getClient();
     const users = client.db('dev').collection('users');
@@ -27,12 +29,12 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     if (existingEmail) {
       // if user email exist but password doesn't match, return error
       const hashedPassword = existingEmail.password.toString('utf8');
-      const password_match = await bcrypt.compare(
+      const passwordMatch = await bcrypt.compare(
         userPassword,
         hashedPassword
       );
 
-      if (!password_match) {
+      if (!passwordMatch) {
         return {
           statusCode: 403,
           body: JSON.stringify({
@@ -57,7 +59,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     // builds token
     const token = jwt.sign(
       { email: userEmail, id: existingEmail._id },
-      config.JWT_SECRET,
+      process.env.JWT_SECRET,
       { expiresIn: '3d' }
     );
 
@@ -71,6 +73,15 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     };
   } catch (error) {
     console.error('Error authorizing user', error);
+
+    // return a 500 Status code error
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal Server Error',
+      }),
+    };
   }
 };
 
