@@ -12,9 +12,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import * as jwt from 'jsonwebtoken';
 
-const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
-  event
-) => {
+const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const userEmail = event.body.email;
   const userPassword = event.body.password;
 
@@ -29,10 +27,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     if (existingEmail) {
       // if user email exist but password doesn't match, return error
       const hashedPassword = existingEmail.password.toString('utf8');
-      const passwordMatch = await bcrypt.compare(
-        userPassword,
-        hashedPassword
-      );
+      const passwordMatch = await bcrypt.compare(userPassword, hashedPassword);
 
       if (!passwordMatch) {
         return {
@@ -57,11 +52,7 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     // password match, now we build a JWT to use as an authentication token
 
     // builds token
-    const token = jwt.sign(
-      { email: userEmail, id: existingEmail._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '3d' }
-    );
+    const token = jwt.sign({ email: userEmail, id: existingEmail._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
 
     return {
       statusCode: 200,
