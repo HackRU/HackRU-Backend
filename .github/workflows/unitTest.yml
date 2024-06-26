@@ -3,7 +3,8 @@ name: Unit Testing
 on:
   push:
     branches:
-      - authorize
+      - main
+      - dev
 
 jobs:
   test:
