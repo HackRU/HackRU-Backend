@@ -5,7 +5,7 @@ const config: Config.InitialOptions = {
   testEnvironment: 'node', // Test environment is Node.js
   testMatch: ['**/*.test.tsx'], // Match test files with .test.ts extension
   transform: {
-    "^.+\\.tsx?$": "ts-jest",
+    '^.+\\.tsx?$': 'ts-jest',
   },
   rootDir: '../',
   moduleNameMapper: {

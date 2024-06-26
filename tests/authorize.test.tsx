@@ -15,7 +15,7 @@ interface Event {
   pathParameters: null | Record<string, string>;
   queryStringParameters: null | Record<string, string>;
   multiValueQueryStringParameters: null | Record<string, string[]>;
-  requestContext: null ; // Adjust type as needed
+  requestContext: null; // Adjust type as needed
   resource: string;
   stageVariables: null | Record<string, string>;
   rawBody: string; // Adjusted type for rawBody
@@ -49,23 +49,21 @@ jest.mock('bcryptjs');
 jest.mock('../src/util', () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
   MongoDB: {
-      getInstance: jest.fn().mockReturnValue({
-          connect: jest.fn(),
-          disconnect: jest.fn(),
-          getClient: jest.fn().mockReturnValue({
-              db: jest.fn().mockReturnValue({
-                collection: jest.fn().mockReturnValue({
-                  findOne: jest.fn()
-                    .mockReturnValueOnce(null)
-                    .mockReturnValue({email: "test@test.org", password: 'test'}),
-                })
-              }),
-      })      
-})
-}}));
+    getInstance: jest.fn().mockReturnValue({
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      getClient: jest.fn().mockReturnValue({
+        db: jest.fn().mockReturnValue({
+          collection: jest.fn().mockReturnValue({
+            findOne: jest.fn().mockReturnValueOnce(null).mockReturnValue({ email: 'test@test.org', password: 'test' }),
+          }),
+        }),
+      }),
+    }),
+  },
+}));
 
 describe('Authorization tests', () => {
-
   const mockContext = {
     callbackWaitsForEmptyEventLoop: false,
     functionName: 'mockFunctionName',
@@ -88,9 +86,9 @@ describe('Authorization tests', () => {
   // case 1
   it('email does not exist', async () => {
     const userData = {
-      email: 'testing@hackru.org', 
-      password: 'test'
-    }
+      email: 'testing@hackru.org',
+      password: 'test',
+    };
 
     const mockEvent = createEvent(userData, path, httpMethod);
     const mockCallback = jest.fn();
@@ -103,8 +101,8 @@ describe('Authorization tests', () => {
   // case 2
   it('invalid password', async () => {
     const userData = {
-      email: 'test@test.org', 
-      password: 'hackru'
+      email: 'test@test.org',
+      password: 'hackru',
     };
 
     const mockEvent = createEvent(userData, path, httpMethod);
@@ -117,7 +115,7 @@ describe('Authorization tests', () => {
     expect(JSON.parse(result.body).message).toBe('Wrong password');
   });
 
-  // case 3 
+  // case 3
   it('correct email and password', async () => {
     const userData = {
       email: 'test@test.org',
@@ -133,7 +131,7 @@ describe('Authorization tests', () => {
 
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body).message).toBe('Authentication Successful');
-    expect(JSON.parse(result.body).token).toBeDefined()
+    expect(JSON.parse(result.body).token).toBeDefined();
     expect(JSON.parse(result.body).token).toBe('mockToken');
   });
 });
