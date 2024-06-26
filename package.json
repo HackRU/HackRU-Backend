@@ -38,6 +38,7 @@
     "serverless": "^3.0.0",
     "serverless-esbuild": "^1.23.3",
     "serverless-offline": "^13.6.0",
+    "supertest": "^7.0.0",
     "ts-node": "^10.4.0",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^4.9.5",
