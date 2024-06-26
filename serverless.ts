@@ -2,6 +2,7 @@ import type { AWS } from '@serverless/typescript';
 
 import hello from '@functions/hello';
 import checkRegistration from '@functions/check-registration';
+import authorize from '@functions/authorize';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -25,8 +26,8 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, checkRegistration },
-  package: { individually: true, patterns: ['!.env*', '.env.vault'] },
+  functions: { hello, checkRegistration, authorize },
+  package: { individually: true },
   custom: {
     esbuild: {
       bundle: true,
