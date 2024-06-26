@@ -85,6 +85,7 @@ describe('Authorization tests', () => {
   const path = '/authorize';
   const httpMethod = 'POST';
 
+  // case 1
   it('email does not exist', async () => {
     const userData = {
       email: 'testing@hackru.org', 
@@ -99,6 +100,7 @@ describe('Authorization tests', () => {
     expect(JSON.parse(result.body).message).toBe('Invalid email');
   });
 
+  // case 2
   it('invalid password', async () => {
     const userData = {
       email: 'test@test.org', 
@@ -115,6 +117,7 @@ describe('Authorization tests', () => {
     expect(JSON.parse(result.body).message).toBe('Wrong password');
   });
 
+  // case 3 
   it('correct email and password', async () => {
     const userData = {
       email: 'test@test.org',
