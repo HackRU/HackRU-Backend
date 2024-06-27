@@ -1,16 +1,11 @@
 import type { AWS } from '@serverless/typescript';
 
 import hello from '@functions/hello';
-<<<<<<< HEAD
-import check_registration from '@functions/check_registration';
-import attend_event from '@functions/attend_event';
-=======
 import checkRegistration from '@functions/check-registration';
 import authorize from '@functions/authorize';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
->>>>>>> 603826d71afa76ff6212871ab7c610ba4de922c1
 
 const serverlessConfiguration: AWS = {
   service: 'hackru-backend',
@@ -31,11 +26,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-<<<<<<< HEAD
-  functions: { hello, check_registration, attend_event },
-=======
   functions: { hello, checkRegistration, authorize },
->>>>>>> 603826d71afa76ff6212871ab7c610ba4de922c1
   package: { individually: true },
   custom: {
     esbuild: {
