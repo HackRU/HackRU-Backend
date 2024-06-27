@@ -78,7 +78,7 @@ const bcrypt = require('bcryptjs');
 jest.mock('bcryptjs');
 
 //mock the
-jest.mock('../../util', () => ({
+jest.mock('../src/util', () => ({
   MongoDB: {
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
@@ -92,7 +92,7 @@ jest.mock('../../util', () => ({
   },
 }));
 
-jest.mock('../../config', () => ({
+jest.mock('../src/config.ts', () => ({
   registrationStart: '06/02/2024',
   registrationEnd: '06/30/2024',
 }));
