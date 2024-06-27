@@ -7,6 +7,8 @@
 */
 const request = require('supertest');
 
+const serverUrl = process.env.SERVER_URL || 'http://localhost:3000';
+
 const testCases = [
   {
     description: 'valid email and password',
@@ -31,7 +33,7 @@ const testCases = [
 describe('/Authorize Tests', () => {
   testCases.forEach(({ description, userData, expectedStatus, expectedMessage }) => {
     test(description, async () => {
-      const response = await request('http://localhost:3000')
+      const response = await request(serverUrl)
         .post('/dev/authorize')
         .send(userData)
         .set('Content-Type', 'application/json');
