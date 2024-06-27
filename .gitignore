@@ -1,5 +1,6 @@
 # HackRU-specific Files
-config.ts
+.env
+.env.keys
 
 # Logs
 logs
