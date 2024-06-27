@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable no-undef */
+
+/* Alt version of authorize.test.tsx
+  This version requires "npx serverless offline" to be running
+  Just use "npm test" to run test
+*/
 const request = require('supertest');
 
 const testCases = [
@@ -32,8 +37,7 @@ describe('/Authorize Tests', () => {
         .set('Content-Type', 'application/json');
 
       expect(response.statusCode).toBe(expectedStatus);
-      expect(response.body.message).toBe(expectedMessage)
-      console.log(response.body);
+      expect(response.body.message).toBe(expectedMessage);
     });
   });
 });
