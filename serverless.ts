@@ -27,7 +27,7 @@ const serverlessConfiguration: AWS = {
   },
   // import the function via paths
   functions: { hello, checkRegistration, authorize },
-  package: { individually: true },
+  package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
       bundle: true,
