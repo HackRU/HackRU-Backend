@@ -4,6 +4,7 @@ import hello from '@functions/hello';
 import checkRegistration from '@functions/check-registration';
 import create from '@functions/create';
 
+import authorize from '@functions/authorize';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -27,7 +28,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, checkRegistration, create },
+  functions: { hello, checkRegistration, create, authorize },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {

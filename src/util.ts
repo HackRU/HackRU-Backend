@@ -12,9 +12,8 @@ export class MongoDB {
   }
 
   public static getInstance(uri: string): MongoDB {
-    if (!MongoDB.instance) {
-      MongoDB.instance = new MongoDB(uri);
-    }
+    if (!MongoDB.instance) MongoDB.instance = new MongoDB(uri);
+
     return MongoDB.instance;
   }
 

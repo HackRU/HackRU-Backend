@@ -36,9 +36,8 @@ async function queryByEmail(email: string, mongoURI: string): Promise<string | n
     const result = await collection.findOne({ email });
 
     // If the object exists, return its registrationStatus
-    if (result) {
-      return result.registration_status;
-    } else {
+    if (result) return result.registration_status;
+    else {
       // If the object does not exist, return null or throw an error
       return null;
     }

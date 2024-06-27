@@ -4,7 +4,7 @@ import { describe, expect, it } from "@jest/globals"
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-import { main } from './handler';
+import { main } from '../src/functions/create/handler';
 
 
 interface Event {
