@@ -1,6 +1,5 @@
 import { MongoClient } from 'mongodb';
 import type { Collection } from 'mongodb';
-import * as config from './config';
 
 // cache connection so only one copy is used
 export class MongoDB {
@@ -36,7 +35,7 @@ export class MongoDB {
   }
 
   public getCollection(name: string): Collection {
-    return this.client.db().collection('users');
+    return this.client.db().collection(name);
   }
 }
 
