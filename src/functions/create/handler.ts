@@ -17,7 +17,10 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   if (!validRegistrationTime) {
     return {
       statusCode: 403,
-      body: 'Registration is closed!',
+      body: JSON.stringify({
+        statusCode: 400,
+        message: 'Registration is closed!',
+      }),
     };
   }
 
@@ -39,7 +42,10 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       //link
       return {
         statusCode: 400,
-        body: 'Duplicate user!',
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Duplicate user!',
+        }),
       };
     }
 
@@ -81,14 +87,21 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     return {
       statusCode: 200,
-      body: 'User created!',
+      body: JSON.stringify({
+        statusCode: 200,
+        message: 'User created!',
+      }),
     };
   } catch (error) {
     console.error('Error creating user', error);
 
     return {
       statusCode: 500,
-      body: error,
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: error,
+      }),
     };
   }
 };
