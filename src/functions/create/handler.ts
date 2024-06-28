@@ -21,7 +21,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     };
   }
 
-  const uEmail = event.body.email;
+  const uEmail = event.body.email.toLowerCase();
   let password = event.body.password;
 
   try {
