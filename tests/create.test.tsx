@@ -108,7 +108,7 @@ describe('Create endpoint', () => {
 
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
-    expect(res.body).toBe('Duplicate user!');
+    expect(JSON.parse(res.body).message).toBe('Duplicate user!');
   });
   it('Create a new user', async () => {
     const mockEvent = createMockEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
@@ -120,7 +120,7 @@ describe('Create endpoint', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toBe('User created!');
+    expect(JSON.parse(res.body).message).toBe('User created!');
   });
   it('Registration time has passed', async () => {
     jest.useFakeTimers();
@@ -132,6 +132,6 @@ describe('Create endpoint', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
 
     expect(res.statusCode).toBe(403);
-    expect(res.body).toBe('Registration is closed!');
+    expect(JSON.parse(res.body).message).toBe('Registration is closed!');
   });
 });
