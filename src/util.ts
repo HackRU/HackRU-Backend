@@ -44,8 +44,7 @@ export class MongoDB {
 export function validateToken(token: string, secretKey: string, authEmail: string): boolean {
   try {
     const decoded = jwt.verify(token, secretKey) as JwtPayload;
-    if (authEmail !== decoded.email)
-      return false;
+    if (authEmail !== decoded.email) return false;
     return true;
   } catch (error) {
     console.error('Invalid token:', error);
@@ -59,8 +58,7 @@ export interface UserProfile {
 
 export function ensureRoles(user: UserProfile, roles: string[]): boolean {
   for (const role of roles) {
-    if (user.role[role])
-      return true;
+    if (user.role[role]) return true;
   }
   return false;
 }

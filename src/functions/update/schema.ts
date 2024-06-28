@@ -7,11 +7,11 @@ export default {
     updates: {
       type: 'object',
       properties: {
-        $set: { 
-          type: 'object', 
+        $set: {
+          type: 'object',
           additionalProperties: {
             type: ['boolean', 'string', 'number'],
-          }
+          },
         },
       },
     },

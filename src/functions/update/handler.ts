@@ -22,7 +22,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
           statusCode: 401,
           message: 'Unauthorized',
         }),
-      }; 
+      };
     }
 
     // connect to DB
@@ -33,14 +33,15 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     // ensure that auth user can only have role director or organizer
     const authUser = await users.findOne({ email: event.body.auth_email });
     if (authUser) {
-      if (!ensureRoles(authUser.role, ['director', 'organizer', 'hacker'])) { // might need to change this
+      if (!ensureRoles(authUser.role, ['director', 'organizer', 'hacker'])) {
+        // might need to change this
         return {
           statusCode: 401,
           body: JSON.stringify({
             statusCode: 401,
             message: 'Unauthorized. Auth user is not an organizer/director/hacker.',
           }),
-        }; 
+        };
       }
     } else {
       return {
@@ -49,7 +50,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
           statusCode: 404,
           message: 'Auth user not found.',
         }),
-      }; 
+      };
     }
 
     // need to check if user_email exists in DB
@@ -78,7 +79,11 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // call updates
     // directors/organizers can update anyone, hackers can only update themselves
-    
+    if (authUser.role === 'director' || authUser.role === 'organizer') {
+      await users.updateOne({ email: event.body.user_email }, { $set: event.body.updates });
+    } else if (authUser.role === 'hacker') {
+      await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
+    }
   } catch (error) {
     console.error('Error updating', error);
     return {
@@ -98,25 +103,24 @@ interface Updates {
   $set?: Record<string, boolean | string | number>;
 }
 
-// this function needs to check: 
+// this function needs to check:
 // 1. valid registration_status upgrade (use graph, refer to link)
-// 2. no alteration to fields such as: _id, password, 
+// 2. no alteration to fields such as: _id, password,
 
 const registrationStatusGraph = {
-  'unregistered': ['registered'],
-  'registered': ['rejected', 'confirmation', 'waitlist'],
-  'confirmation': ['coming', 'not_coming'],
-  'rejected': ['checked_in'],
-  'coming': ['not_coming', 'confirmed'],
-  'not_coming': ['coming', 'waitlist'],
-  'confirmed': ['checked_in'],
-  'waitlist': ['checked_in'],
-  'checked_in': [],
-}
+  unregistered: ['registered'],
+  registered: ['rejected', 'confirmation', 'waitlist'],
+  confirmation: ['coming', 'not_coming'],
+  rejected: ['checked_in'],
+  coming: ['not_coming', 'confirmed'],
+  not_coming: ['coming', 'waitlist'],
+  confirmed: ['checked_in'],
+  waitlist: ['checked_in'],
+  checked_in: [],
+};
 
 function isValidRegistrationStatusUpdate(current: string, goal: string): boolean {
-  if (current in registrationStatusGraph) 
-    return registrationStatusGraph[current].includes(goal);  
+  if (current in registrationStatusGraph) return registrationStatusGraph[current].includes(goal);
   return false;
 }
 
@@ -125,10 +129,8 @@ function validateUpdates(updates: Updates, registrationStatus?: string): boolean
   const setUpdates = updates.$set;
   if ('registration_status' in setUpdates) {
     const goalStatus = setUpdates.registration_status as string;
-    if (!(isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus))) 
-      return false;
-  } else if ('_id' in setUpdates || 'password' in setUpdates) 
-      return false;
+    if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
+  } else if ('_id' in setUpdates || 'password' in setUpdates) return false;
   return true;
 }
 
