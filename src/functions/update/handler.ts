@@ -84,6 +84,13 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     } else if (authUser.role === 'hacker') {
       await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
     }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'User updated successfully',
+      }),
+    };
   } catch (error) {
     console.error('Error updating', error);
     return {
