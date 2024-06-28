@@ -85,6 +85,11 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     };
   } catch (error) {
     console.error('Error creating user', error);
+
+    return {
+      statusCode: 500,
+      body: error,
+    };
   }
 };
 

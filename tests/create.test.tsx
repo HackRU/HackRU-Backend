@@ -77,7 +77,7 @@ function createMockContext(): Context {
 const bcrypt = require('bcryptjs');
 jest.mock('bcryptjs');
 
-//mock the
+//mock the db route
 jest.mock('../src/util', () => ({
   MongoDB: {
     getInstance: jest.fn().mockReturnValue({
