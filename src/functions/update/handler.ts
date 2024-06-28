@@ -79,7 +79,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // call updates
     // directors/organizers can update anyone, hackers can only update themselves
-    if (authUser.role === 'director' || authUser.role === 'organizer') {
+    if (authUser.role['director'] || authUser.role['organizer']) {
       await users.updateOne({ email: event.body.user_email }, { $set: event.body.updates });
     } else if (authUser.role === 'hacker') {
       await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
@@ -88,6 +88,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     return {
       statusCode: 200,
       body: JSON.stringify({
+        statusCode: 200,
         message: 'User updated successfully',
       }),
     };
@@ -96,7 +97,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     return {
       statusCode: 500,
       body: JSON.stringify({
-        statusCode: 400,
+        statusCode: 500,
         message: 'Internal server error',
         error,
       }),
