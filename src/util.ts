@@ -36,7 +36,7 @@ export class MongoDB {
   }
 
   public getCollection(name: string): Collection {
-    return this.client.db().collection(config.DB_COLLECTIONS[name]);
+    return this.client.db().collection('users');
   }
 }
 
