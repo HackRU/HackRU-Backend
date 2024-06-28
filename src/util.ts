@@ -1,4 +1,6 @@
 import { MongoClient } from 'mongodb';
+import type { Collection } from 'mongodb';
+import * as jwt from 'jsonwebtoken';
 
 // cache connection so only one copy is used
 export class MongoDB {
@@ -32,21 +34,30 @@ export class MongoDB {
   public getClient(): MongoClient {
     return this.client;
   }
+
+  public getCollection(name: string): Collection {
+    return this.client.db().collection(name);
+  }
 }
 
-// Usage example
-// const mongoURI = config.DEV_MONGO_URI;
-// const db = MongoDB.getInstance(mongoURI);
-// db.connect()
-//     .then(async () => {
-//         const client = db.getClient();
-//         // Use the MongoDB client instance for database operations (example given below)
-//         const database = client.db('dev');
-//         const collection = database.collection('users');
+export function validateToken(token: string, secretKey: string): boolean {
+  try {
+    jwt.verify(token, secretKey);
+    return true;
+  } catch (error) {
+    console.error('Invalid token:', error);
+    return false;
+  }
+}
 
-//         const result = await collection.findOne({ "email": "test@test.org" });
-//         console.log(result['registrationStatus'])
-//     })
-//     .catch((error) => {
-//         console.error('Error connecting to MongoDB:', error);
-//     });
+export interface UserProfile {
+  role: Record<string, boolean>;
+}
+
+export function ensureRoles(user: UserProfile, roles: string[]): boolean {
+  for (const role of roles) {
+    if (user.role[role])
+      return true;
+  }
+  return false;
+}
