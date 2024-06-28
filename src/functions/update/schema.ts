@@ -7,24 +7,11 @@ export default {
     updates: {
       type: 'object',
       properties: {
-        $set: { type: 'object' },
-        $inc: {
-          type: 'object',
-          properties: {
-            votes: { type: 'number' },
-            day_of: {
-              type: 'object',
-              additionalProperties: {
-                type: 'number',
-              },
-            },
-          },
-          $push: {
-            type: 'object',
-            properties: {
-              votes_from: { type: 'string', format: 'email' },
-            },
-          },
+        $set: { 
+          type: 'object', 
+          additionalProperties: {
+            type: ['boolean', 'string', 'number'],
+          }
         },
       },
     },
