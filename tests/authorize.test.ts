@@ -1,47 +1,10 @@
 // authorize.test.ts
 
 import { main } from '../src/functions/authorize/handler';
+import { createEvent, mockContext } from './helper';
 
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcryptjs';
-
-interface Event {
-  body: string;
-  path: string;
-  httpMethod: string;
-  headers: Record<string, string>;
-  multiValueHeaders: Record<string, string[]>; // Adjusted type for multiValueHeaders
-  isBase64Encoded: boolean;
-  pathParameters: null | Record<string, string>;
-  queryStringParameters: null | Record<string, string>;
-  multiValueQueryStringParameters: null | Record<string, string[]>;
-  requestContext: null; // Adjust type as needed
-  resource: string;
-  stageVariables: null | Record<string, string>;
-  rawBody: string; // Adjusted type for rawBody
-}
-
-function createEvent(userData: Record<string, string>, path: string, httpMethod: string): Event {
-  const event: Event = {
-    body: JSON.stringify(userData),
-    path,
-    httpMethod,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    multiValueHeaders: {},
-    isBase64Encoded: false,
-    pathParameters: null,
-    queryStringParameters: null,
-    multiValueQueryStringParameters: null,
-    requestContext: null,
-    resource: '',
-    stageVariables: null,
-    rawBody: JSON.stringify(userData),
-  };
-
-  return event;
-}
 
 jest.mock('jsonwebtoken');
 jest.mock('bcryptjs');
@@ -52,34 +15,14 @@ jest.mock('../src/util', () => ({
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
       disconnect: jest.fn(),
-      getClient: jest.fn().mockReturnValue({
-        db: jest.fn().mockReturnValue({
-          collection: jest.fn().mockReturnValue({
-            findOne: jest.fn().mockReturnValueOnce(null).mockReturnValue({ email: 'test@test.org', password: 'test' }),
-          }),
-        }),
+      getCollection: jest.fn().mockReturnValue({
+        findOne: jest.fn().mockReturnValueOnce(null).mockReturnValue({ email: 'test@test.org', password: 'test' }),
       }),
     }),
   },
 }));
 
 describe('Authorization tests', () => {
-  const mockContext = {
-    callbackWaitsForEmptyEventLoop: false,
-    functionName: 'mockFunctionName',
-    functionVersion: 'mockFunctionVersion',
-    invokedFunctionArn: 'mockInvokedFunctionArn',
-    awsRequestId: 'mockRequestId',
-    logGroupName: 'mockLogGroupName',
-    logStreamName: 'mockLogStreamName',
-    memoryLimitInMB: '128',
-    invokeid: 'mockInvokeId',
-    getRemainingTimeInMillis: () => 1000,
-    done: jest.fn(),
-    fail: jest.fn(),
-    succeed: jest.fn(),
-  };
-
   const path = '/authorize';
   const httpMethod = 'POST';
 
