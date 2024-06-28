@@ -1,6 +1,7 @@
 import { MongoClient } from 'mongodb';
 import type { Collection } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
+import type { JwtPayload } from 'jsonwebtoken';
 
 // cache connection so only one copy is used
 export class MongoDB {
@@ -40,9 +41,11 @@ export class MongoDB {
   }
 }
 
-export function validateToken(token: string, secretKey: string): boolean {
+export function validateToken(token: string, secretKey: string, authEmail: string): boolean {
   try {
-    jwt.verify(token, secretKey);
+    const decoded = jwt.verify(token, secretKey) as JwtPayload;
+    if (authEmail !== decoded.email)
+      return false;
     return true;
   } catch (error) {
     console.error('Invalid token:', error);
