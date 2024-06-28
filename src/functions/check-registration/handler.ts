@@ -29,6 +29,7 @@ async function queryByEmail(email: string, mongoURI: string): Promise<string | n
     const client = db.getClient();
 
     // Access the database and collection
+
     const collection = client.db('dev').collection('users');
 
     // Query the object based on the email
