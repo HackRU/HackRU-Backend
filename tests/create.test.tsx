@@ -22,23 +22,28 @@ interface Event {
 }
 
 // creating mock event for all tests
-function createMockEvent(userData: Record<string, string>, path: string, httpMethod: string): Event {
-  return {
+function createEvent(userData: Record<string, string>, path: string, httpMethod: string): Event {
+  const event: Event = {
     body: JSON.stringify(userData),
-    headers: {},
+    path,
+    httpMethod,
+    headers: {
+      'Content-Type': 'application/json',
+    },
     multiValueHeaders: {},
-    httpMethod: httpMethod,
     isBase64Encoded: false,
-    path: path,
     pathParameters: null,
     queryStringParameters: null,
     multiValueQueryStringParameters: null,
-    stageVariables: null,
-    requestContext: {} as any,
+    requestContext: null,
     resource: '',
+    stageVariables: null,
     rawBody: JSON.stringify(userData),
   };
+
+  return event;
 }
+
 interface Context {
   callbackWaitsForEmptyEventLoop: boolean;
   functionName: string;
@@ -99,7 +104,7 @@ jest.mock('../src/config.ts', () => ({
 
 describe('Create endpoint', () => {
   it('Duplicate User', async () => {
-    const mockEvent = createMockEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
+    const mockEvent = createEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
     const mockContext = createMockContext();
 
     const mockCallback = jest.fn();
@@ -111,7 +116,7 @@ describe('Create endpoint', () => {
     expect(JSON.parse(res.body).message).toBe('Duplicate user!');
   });
   it('Create a new user', async () => {
-    const mockEvent = createMockEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
+    const mockEvent = createEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
     const mockContext = createMockContext();
 
     const mockCallback = jest.fn();
@@ -126,7 +131,7 @@ describe('Create endpoint', () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('07/01/2024'));
 
-    const mockEvent = createMockEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
+    const mockEvent = createEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
     const mockContext = createMockContext();
     const mockCallback = jest.fn();
     const res = await main(mockEvent, mockContext, mockCallback);

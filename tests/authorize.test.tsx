@@ -52,12 +52,8 @@ jest.mock('../src/util', () => ({
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
       disconnect: jest.fn(),
-      getClient: jest.fn().mockReturnValue({
-        db: jest.fn().mockReturnValue({
-          collection: jest.fn().mockReturnValue({
-            findOne: jest.fn().mockReturnValueOnce(null).mockReturnValue({ email: 'test@test.org', password: 'test' }),
-          }),
-        }),
+      getCollection: jest.fn().mockReturnValue({
+        findOne: jest.fn().mockReturnValueOnce(null).mockReturnValue({ email: 'test@test.org', password: 'test' }),
       }),
     }),
   },
