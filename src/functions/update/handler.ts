@@ -35,7 +35,6 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     console.log(authUser);
     if (authUser) {
       if (!ensureRoles(authUser.role, ['director', 'organizer', 'hacker'])) {
-        // might need to change this
         return {
           statusCode: 401,
           body: JSON.stringify({
@@ -80,11 +79,9 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // call updates
     // directors/organizers can update anyone, hackers can only update themselves
-    if (authUser.role['director'] || authUser.role['organizer']) {
+    if (authUser.role['director'] || authUser.role['organizer'])
       await users.updateOne({ email: event.body.user_email }, { $set: event.body.updates });
-    } else if (authUser.role === 'hacker') {
-      await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
-    }
+    else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
 
     return {
       statusCode: 200,
@@ -105,8 +102,6 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     };
   }
 };
-
-// might or might not need this interface
 
 interface Updates {
   $set?: Record<string, boolean | string | number>;
