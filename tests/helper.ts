@@ -14,6 +14,39 @@ interface MockEvent {
   rawBody: string; // Adjusted type for rawBody
 }
 
+interface Updates {
+  $set?: Record<string, boolean | string | number>;
+}
+
+interface updateEventBody {
+  user_email: string;
+  auth_email: string;
+  auth_token: string;
+  updates: Updates;
+}
+
+export function createUpdateEvent(userData: updateEventBody, path: string, httpMethod: string): MockEvent {
+  const event = {
+    body: JSON.stringify(userData),
+    path,
+    httpMethod,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    multiValueHeaders: {},
+    isBase64Encoded: false,
+    pathParameters: null,
+    queryStringParameters: null,
+    multiValueQueryStringParameters: null,
+    requestContext: null,
+    resource: '',
+    stageVariables: null,
+    rawBody: JSON.stringify(userData),
+  };
+
+  return event;
+}
+
 export function createEvent(userData: Record<string, string>, path: string, httpMethod: string): MockEvent {
   const event = {
     body: JSON.stringify(userData),
