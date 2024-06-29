@@ -17,10 +17,10 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       return {
         statusCode: 401,
         body: JSON.stringify({
-          statusCode: 401, 
-          message: 'Unauthorized.'
-        })
-      }
+          statusCode: 401,
+          message: 'Unauthorized.',
+        }),
+      };
     }
 
     // Connect to MongoDB
@@ -41,7 +41,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     }
 
-    // ensure that only directors/organizers (auth_email) can call this route 
+    // ensure that only directors/organizers (auth_email) can call this route
     const authUser = await users.findOne({ email: event.body.auth_email });
     if (!authUser) {
       return {
@@ -49,16 +49,16 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         body: JSON.stringify({
           statusCode: 404,
           message: 'Auth user not found.',
-        })
+        }),
       };
     }
     if (!ensureRoles(authUser.role, ['director', 'organizer'])) {
       return {
         statusCode: 401,
         body: JSON.stringify({
-          statusCode: 401, 
-          message: 'Only directors/organizers can call this endpoint.'
-        })
+          statusCode: 401,
+          message: 'Only directors/organizers can call this endpoint.',
+        }),
       };
     }
 
@@ -68,7 +68,8 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     // if never attended this event before
     if (attendEvent.day_of?.event?.[hackEvent] === undefined)
       await users.updateOne({ email: event.body.qr }, { $set: { [`day_of.event.${hackEvent}`]: 1 } });
-    else if (event.body.again === false) { // if can only attend this event once and user has already attended
+    else if (event.body.again === false) {
+      // if can only attend this event once and user has already attended
       return {
         statusCode: 409,
         body: JSON.stringify({

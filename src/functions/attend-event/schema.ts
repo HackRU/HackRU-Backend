@@ -1,7 +1,7 @@
 export default {
   type: 'object',
   properties: {
-    auth_email: { type: 'string', format: 'email'},
+    auth_email: { type: 'string', format: 'email' },
     auth_token: { type: 'string' },
     qr: { type: 'string', format: 'email' },
     event: { type: ' string' },
