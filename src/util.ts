@@ -57,7 +57,8 @@ export interface UserProfile {
 }
 
 export function ensureRoles(user: UserProfile, roles: string[]): boolean {
-  for (const role of roles) if (user.role[role]) return true;
+  console.log(user);
+  for (const role of roles) if (user[role]) return true;
 
   return false;
 }

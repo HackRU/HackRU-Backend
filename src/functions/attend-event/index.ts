@@ -6,7 +6,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'attend_event',
+        path: 'attend-event',
         request: {
           schemas: {
             'application/json': schema,
