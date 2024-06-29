@@ -3,6 +3,7 @@ import type { AWS } from '@serverless/typescript';
 import hello from '@functions/hello';
 import checkRegistration from '@functions/check-registration';
 import create from '@functions/create';
+import update from '@functions/update';
 
 import authorize from '@functions/authorize';
 import attendEvent from '@functions/attend-event';
@@ -29,7 +30,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, checkRegistration, create, authorize, attendEvent },
+  functions: { hello, checkRegistration, create, authorize, update, attendEvent },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
