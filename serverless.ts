@@ -2,6 +2,8 @@ import type { AWS } from '@serverless/typescript';
 
 import hello from '@functions/hello';
 import checkRegistration from '@functions/check-registration';
+import create from '@functions/create';
+
 import authorize from '@functions/authorize';
 import attendEvent from '@functions/attend-event';
 import * as path from 'path';
@@ -27,8 +29,8 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, checkRegistration, authorize, attendEvent},
-  package: { individually: true },
+  functions: { hello, checkRegistration, create, authorize, attendEvent },
+  package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
       bundle: true,
