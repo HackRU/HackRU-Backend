@@ -13,15 +13,14 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import * as jwt from 'jsonwebtoken';
 
 const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
-  const userEmail = event.body.email;
+  const userEmail = event.body.email.toLowerCase();
   const userPassword = event.body.password;
 
   // check to see if email is present in DB
   try {
     const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
     await db.connect();
-    const client = db.getClient();
-    const users = client.db('dev').collection('users');
+    const users = db.getCollection('users');
 
     const existingEmail = await users.findOne({ email: userEmail });
     if (existingEmail) {

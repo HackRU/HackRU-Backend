@@ -32,6 +32,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // ensure that auth user can only have role director or organizer
     const authUser = await users.findOne({ email: event.body.auth_email });
+    console.log(authUser);
     if (authUser) {
       if (!ensureRoles(authUser.role, ['director', 'organizer', 'hacker'])) {
         return {
@@ -130,11 +131,13 @@ function isValidRegistrationStatusUpdate(current: string, goal: string): boolean
 // return true or false whether the proposed update is valid or not
 function validateUpdates(updates: Updates, registrationStatus?: string): boolean {
   const setUpdates = updates.$set;
-  if ('registration_status' in setUpdates) {
-    const goalStatus = setUpdates.registration_status as string;
-    if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
-  } else if ('_id' in setUpdates || 'password' in setUpdates) return false;
-  return true;
+  if (setUpdates) {
+    if ('registration_status' in setUpdates) {
+      const goalStatus = setUpdates.registration_status as string;
+      if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
+    } else if ('_id' in setUpdates || 'password' in setUpdates) return false;
+    return true;
+  }
 }
 
 export const main = middyfy(update);
