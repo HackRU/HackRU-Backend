@@ -5,7 +5,7 @@ import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import { main } from '../src/functions/update/handler';
 
-import { createUpdateEvent, mockContext } from './helper';
+import { createEvent, mockContext } from './helper';
 
 jest.mock('../src/util', () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -90,7 +90,7 @@ describe('Update endpoint', () => {
   };
   //case 1
   it('authUser not found', async () => {
-    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockEvent = createEvent(userData, '/update', 'POST');
     const mockCallback = jest.fn();
     const res = await main(mockEvent, mockContext, mockCallback);
 
@@ -99,7 +99,7 @@ describe('Update endpoint', () => {
   });
   //case 2
   it('Invalid user type', async () => {
-    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockEvent = createEvent(userData, '/update', 'POST');
 
     const mockCallback = jest.fn();
 
@@ -110,7 +110,7 @@ describe('Update endpoint', () => {
   });
   //case 3
   it('User to be updated not found', async () => {
-    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockEvent = createEvent(userData, '/update', 'POST');
     const mockCallback = jest.fn();
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(404);
@@ -130,7 +130,7 @@ describe('Update endpoint', () => {
         },
       },
     };
-    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockEvent = createEvent(userData, '/update', 'POST');
     const mockCallback = jest.fn();
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
@@ -138,7 +138,7 @@ describe('Update endpoint', () => {
   });
   //case 5
   it('Successfully update', async () => {
-    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockEvent = createEvent(userData, '/update', 'POST');
 
     const mockCallback = jest.fn();
 
@@ -148,7 +148,7 @@ describe('Update endpoint', () => {
   });
   //case 6
   it('Invalid Token, unauthorized user', async () => {
-    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockEvent = createEvent(userData, '/update', 'POST');
 
     const mockCallback = jest.fn();
 
