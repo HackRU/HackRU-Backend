@@ -32,7 +32,6 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // ensure that auth user can only have role director or organizer
     const authUser = await users.findOne({ email: event.body.auth_email });
-    console.log(authUser);
     if (authUser) {
       if (!ensureRoles(authUser.role, ['director', 'organizer', 'hacker'])) {
         return {
