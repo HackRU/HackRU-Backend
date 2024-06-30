@@ -16,8 +16,9 @@ jest.mock('../src/util', () => ({
       getCollection: jest.fn().mockReturnValue({
         findOne: jest
           .fn()
-          .mockReturnValueOnce(null)
+          .mockReturnValueOnce(null) //authUser not found
           .mockReturnValueOnce({
+            //not hacker/director/organizer
             email: 'test@test.org',
             password: 'test',
             role: {
@@ -30,6 +31,21 @@ jest.mock('../src/util', () => ({
               director: false,
             },
           })
+          .mockReturnValueOnce({
+            //user to be updated not found, authUser found
+            email: 'testAuth@test.org',
+            password: 'test',
+            role: {
+              hacker: true,
+              volunteer: false,
+              judge: false,
+              sponsor: false,
+              mentor: false,
+              organizer: false,
+              director: false,
+            },
+          })
+          .mockReturnValueOnce(null) //user to be updated not found
           .mockReturnValue({
             email: 'test@test.org',
             password: 'test',
@@ -43,11 +59,14 @@ jest.mock('../src/util', () => ({
               director: false,
             },
           }),
+        updateOne: jest.fn(),
       }),
     }),
   },
   validateToken: jest
     .fn()
+    .mockReturnValueOnce(true)
+    .mockReturnValueOnce(true)
     .mockReturnValueOnce(true)
     .mockReturnValueOnce(true)
     .mockReturnValueOnce(true)
@@ -58,6 +77,7 @@ jest.mock('../src/util', () => ({
 }));
 
 describe('Update endpoint', () => {
+  //case 1
   it('authUser not found', async () => {
     const userData = {
       user_email: 'test@test.org',
@@ -74,11 +94,11 @@ describe('Update endpoint', () => {
     const mockEvent = createUpdateEvent(userData, '/update', 'POST');
     const mockCallback = jest.fn();
     const res = await main(mockEvent, mockContext, mockCallback);
-    console.log('authUser not found');
-    console.log(res);
+
     expect(res.statusCode).toBe(404);
     expect(JSON.parse(res.body).message).toBe('Auth user not found.');
   });
+  //case 2
   it('Invalid user type', async () => {
     const userData = {
       user_email: 'test@test.org',
@@ -98,11 +118,49 @@ describe('Update endpoint', () => {
 
     const res = await main(mockEvent, mockContext, mockCallback);
 
-    console.log('unauthorized user');
-    console.log(res);
     expect(res.statusCode).toBe(401);
     expect(JSON.parse(res.body).message).toBe('Unauthorized. Auth user is not an organizer/director/hacker.');
   });
+  //case 3
+  it('User to be updated not found', async () => {
+    const userData = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          first_name: 'testName',
+          last_name: 'testLastName',
+        },
+      },
+    };
+    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockCallback = jest.fn();
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(404);
+    expect(JSON.parse(res.body).message).toBe('User to be updated not found.');
+  });
+  //case 4
+  it('invalid updates', async () => {
+    const userData = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          first_name: 'testName',
+          last_name: 'testLastName',
+          registration_status: 'unregistered',
+        },
+      },
+    };
+    const mockEvent = createUpdateEvent(userData, '/update', 'POST');
+    const mockCallback = jest.fn();
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toBe('Bad updates.');
+  });
+  //case 5
   it('Successfully update', async () => {
     const userData = {
       user_email: 'test@test.org',
@@ -124,6 +182,7 @@ describe('Update endpoint', () => {
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).message).toBe('User updated successfully');
   });
+  //case 6
   it('Invalid Token, unauthorized user', async () => {
     const userData = {
       user_email: 'test@test.org',
@@ -141,8 +200,6 @@ describe('Update endpoint', () => {
     const mockCallback = jest.fn();
 
     const res = await main(mockEvent, mockContext, mockCallback);
-    console.log('invalid token');
-    console.log(res);
     expect(res.statusCode).toBe(401);
     expect(JSON.parse(res.body).message).toBe('Unauthorized');
   });
