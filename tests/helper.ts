@@ -47,7 +47,11 @@ export function createUpdateEvent(userData: updateEventBody, path: string, httpM
   return event;
 }
 
-export function createEvent(userData: Record<string, string>, path: string, httpMethod: string): MockEvent {
+export function createEvent(
+  userData: Record<string, string | boolean | number>,
+  path: string,
+  httpMethod: string
+): MockEvent {
   const event = {
     body: JSON.stringify(userData),
     path,
