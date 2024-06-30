@@ -14,7 +14,11 @@ interface MockEvent {
   rawBody: string; // Adjusted type for rawBody
 }
 
-export function createEvent(userData: Record<string, string>, path: string, httpMethod: string): MockEvent {
+export function createEvent(
+  userData: Record<string, string | boolean | number>,
+  path: string,
+  httpMethod: string
+): MockEvent {
   const event = {
     body: JSON.stringify(userData),
     path,
