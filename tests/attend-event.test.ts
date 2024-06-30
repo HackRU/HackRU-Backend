@@ -35,7 +35,7 @@ describe('Attend-Event tests', () => {
   const path = '/attend-event';
   const httpMethod = 'POST';
 
-  // this will make it more concise and easier to understand
+  // this will make it more concise and easier to understand (mocking)
   const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
   const mockCallback = jest.fn();
 
@@ -49,6 +49,7 @@ describe('Attend-Event tests', () => {
     expect(JSON.parse(result.body).message).toBe('Unauthorized.');
   });
 
+  // case 2
   it('user does not exist', async () => {
     findOneMock.mockReturnValueOnce(null);
     const mockEvent = createEvent(userData, path, httpMethod);
@@ -59,6 +60,7 @@ describe('Attend-Event tests', () => {
     expect(JSON.parse(result.body).message).toBe('User not found.');
   });
 
+  // case 3
   it('Auth user does not have director/organizer role', async () => {
     findOneMock.mockReturnValueOnce({}).mockReturnValueOnce({
       role: {
@@ -79,7 +81,7 @@ describe('Attend-Event tests', () => {
     expect(JSON.parse(result.body).message).toBe('Only directors/organizers can call this endpoint.');
   });
 
-  // const updateOneMock = util.MongoDB.getInstance('uri').getCollection('users').updateOne as jest.Mock;
+  // case 4
   it('user tries to check into an event the second time but it can only be attended once', async () => {
     userData.again = false;
     findOneMock
@@ -109,6 +111,7 @@ describe('Attend-Event tests', () => {
     expect(JSON.parse(result.body).message).toBe('User already checked into event.');
   });
 
+  // case 5
   it('success check-in to an event', async () => {
     userData.again = true;
     findOneMock
