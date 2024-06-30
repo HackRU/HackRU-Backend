@@ -7,12 +7,12 @@ export default {
       http: {
         method: 'post',
         path: 'attend-event',
+        cors: true,
         request: {
           schemas: {
             'application/json': schema,
           },
         },
-        cors: true,
       },
     },
   ],
