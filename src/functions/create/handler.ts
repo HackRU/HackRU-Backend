@@ -16,7 +16,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   //check link
   if (!validRegistrationTime) {
     return {
-      statusCode: 403,
+      statusCode: 400,
       body: JSON.stringify({
         statusCode: 400,
         message: 'Registration is closed!',

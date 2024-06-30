@@ -1,11 +1,12 @@
 import { main } from '../src/functions/create/handler';
 import { createEvent, mockContext } from './helper';
 
-const bcrypt = require('bcryptjs');
+import * as bcrypt from 'bcryptjs';
 jest.mock('bcryptjs');
 
 //mock the db route
 jest.mock('../src/util', () => ({
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   MongoDB: {
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
@@ -21,7 +22,7 @@ jest.mock('../src/util', () => ({
 
 jest.mock('../src/config.ts', () => ({
   registrationStart: '06/02/2024',
-  registrationEnd: '06/30/2024',
+  registrationEnd: '12/31/2099',
 }));
 
 describe('Create endpoint', () => {
@@ -30,7 +31,7 @@ describe('Create endpoint', () => {
 
     const mockCallback = jest.fn();
 
-    bcrypt.hash.mockResolvedValue('hashedPassword');
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
 
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
@@ -41,7 +42,7 @@ describe('Create endpoint', () => {
 
     const mockCallback = jest.fn();
 
-    bcrypt.hash.mockResolvedValue('hashedPassword');
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
     const res = await main(mockEvent, mockContext, mockCallback);
 
     expect(res.statusCode).toBe(200);
@@ -49,13 +50,13 @@ describe('Create endpoint', () => {
   });
   it('Registration time has passed', async () => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date('07/01/2024'));
+    jest.setSystemTime(new Date('01/01/2100'));
 
     const mockEvent = createEvent({ email: 'testEmail@gmail.com', password: 'testPassword123' }, '/create', 'POST');
     const mockCallback = jest.fn();
     const res = await main(mockEvent, mockContext, mockCallback);
 
-    expect(res.statusCode).toBe(403);
+    expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body).message).toBe('Registration is closed!');
   });
 });
