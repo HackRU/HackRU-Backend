@@ -79,8 +79,8 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     // call updates
     // directors/organizers can update anyone, hackers can only update themselves
     if (authUser.role['director'] || authUser.role['organizer'])
-      await users.updateOne({ email: event.body.user_email }, { $set: event.body.updates });
-    else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
+      await users.updateOne({ email: event.body.user_email }, event.body.updates);
+    else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, event.body.updates);
 
     return {
       statusCode: 200,
