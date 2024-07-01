@@ -19,7 +19,7 @@ export interface Updates {
 }
 
 export function createEvent(
-  userData: Record<string, string | boolean | number | Updates | undefined>,
+  userData: Record<string, string | boolean | number | Updates>,
   path: string,
   httpMethod: string
 ): MockEvent {
