@@ -14,12 +14,12 @@ interface MockEvent {
   rawBody: string; // Adjusted type for rawBody
 }
 
-interface Updates {
-  $set?: Record<string, boolean | string | number>;
+export interface Updates {
+  $set: Record<string, boolean | string | number>;
 }
 
 export function createEvent(
-  userData: Record<string, string | boolean | number | Updates>,
+  userData: Record<string, string | boolean | number | Updates | undefined>,
   path: string,
   httpMethod: string
 ): MockEvent {
