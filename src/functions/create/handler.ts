@@ -31,7 +31,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     //hash password
     password = await bcrypt.hash(password, 8);
 
-    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.PROD_MONGO_URI);
     await db.connect();
 
     //try to pull user from db by email to ensure there is no duplicate registration

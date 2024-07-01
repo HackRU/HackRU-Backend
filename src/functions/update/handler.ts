@@ -26,7 +26,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // connect to DB
-    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.PROD_MONGO_URI);
     await db.connect();
     const users = db.getCollection('users');
 
