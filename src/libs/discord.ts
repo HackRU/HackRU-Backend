@@ -5,6 +5,12 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
+import type {
+  RESTGetAPIOAuth2CurrentAuthorizationResult,
+  RESTPostOAuth2AccessTokenResult,
+  RESTPostOAuth2RefreshTokenResult,
+} from 'discord-api-types/v10';
+
 const discordURL = 'https://discord.com/api/v10';
 
 export async function getDiscordTokens(code: string) {
@@ -23,7 +29,7 @@ export async function getDiscordTokens(code: string) {
   });
 
   if (resp.ok) {
-    const data = (await resp.json()) as any;
+    const data = (await resp.json()) as RESTPostOAuth2AccessTokenResult;
     return {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
@@ -47,7 +53,7 @@ export async function refreshAccessToken(refreshToken: string) {
   });
 
   if (resp.ok) {
-    const data = (await resp.json()) as any;
+    const data = (await resp.json()) as RESTPostOAuth2RefreshTokenResult;
     return {
       accessToken: data.access_token,
       refreshToken: data.refresh_token,
@@ -64,7 +70,7 @@ export async function getDiscordUser(token: string) {
   });
 
   if (resp.ok) {
-    const data = (await resp.json()) as any;
+    const data = (await resp.json()) as RESTGetAPIOAuth2CurrentAuthorizationResult;
     return {
       userId: data.user.id,
       username: data.user.username,

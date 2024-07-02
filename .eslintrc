@@ -10,7 +10,6 @@
     "@typescript-eslint"
   ],
   "rules": {
-    "@typescript-eslint/no-explicit-any": "off",
     "block-spacing": "off",
     "@typescript-eslint/block-spacing": "error",
     "brace-style": [
