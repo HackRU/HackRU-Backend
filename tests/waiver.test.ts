@@ -16,7 +16,7 @@ describe('/waiver tests', () => {
   const userData = {
     email: 'hacker@hackru.org',
     auth_token: 'mockAuthToken',
-  }
+  };
   const mockCallback = jest.fn();
 
   const mockCheckIfFileExist = util.checkIfFileExists as jest.Mock;
@@ -27,7 +27,7 @@ describe('/waiver tests', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(401);
     expect(JSON.parse(res.body).message).toBe('Unauthorized');
-  })
+  });
 
   it('user has already uploaded waiver', async () => {
     const mockEvent = createEvent(userData, '/waiver', 'POST');
@@ -36,7 +36,7 @@ describe('/waiver tests', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body).message).toBe('You already submitted a waiver');
-  })
+  });
 
   it('success case, return a presigned url', async () => {
     const mockEvent = createEvent(userData, '/waiver', 'POST');
@@ -45,5 +45,5 @@ describe('/waiver tests', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).url).toBe('presigned-url');
-  })
+  });
 });
