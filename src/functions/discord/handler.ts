@@ -17,7 +17,6 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     return {
       statusCode: 401,
       body: JSON.stringify({
-        statusCode: 401,
         message: 'Unauthorized',
       }),
     };
@@ -33,7 +32,6 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
       return {
         statusCode: 404,
         body: JSON.stringify({
-          statusCode: 404,
           message: 'User not found',
         }),
       };
@@ -64,7 +62,6 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     return {
       statusCode: 200,
       body: JSON.stringify({
-        statusCode: 200,
         message: 'Discord user verified',
         discordId: discordUser.userId,
         discordUsername: discordUser.username,
@@ -76,7 +73,6 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     return {
       statusCode: 500,
       body: JSON.stringify({
-        statusCode: 500,
         message: 'Internal Server Error',
         error: error,
       }),
