@@ -134,7 +134,7 @@ function validateUpdates(updates: Updates, registrationStatus?: string): boolean
     if ('registration_status' in setUpdates) {
       const goalStatus = setUpdates.registration_status as string;
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
-    } else if ('_id' in setUpdates || 'password' in setUpdates) return false;
+    } else if ('_id' in setUpdates || 'password' in setUpdates || 'discord' in setUpdates) return false;
     return true;
   }
 }
