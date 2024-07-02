@@ -29,14 +29,15 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     const users = db.getCollection('users');
 
     const user = await users.findOne({ email: email });
-    if (!user)
-      return {
+    if (!user) {
+ return {
         statusCode: 404,
         body: JSON.stringify({
           statusCode: 404,
           message: 'User not found',
         }),
-      };
+      }; 
+}
 
     const tokens = await discordAPI.getDiscordTokens(event.body.code);
     const discordUser = await discordAPI.getDiscordUser(tokens.accessToken);

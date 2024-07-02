@@ -29,9 +29,7 @@ export async function getDiscordTokens(code: string) {
       refreshToken: data.refresh_token,
       expiresAt: Date.now() + data.expires_in * 1000,
     };
-  } else {
-    throw new Error(`Error fetching discord token: [${resp.status}] ${resp.statusText}`);
-  }
+  } else throw new Error(`Error fetching discord token: [${resp.status}] ${resp.statusText}`);
 }
 
 export async function refreshAccessToken(refreshToken: string) {
@@ -55,15 +53,13 @@ export async function refreshAccessToken(refreshToken: string) {
       refreshToken: data.refresh_token,
       expiresAt: Date.now() + data.expires_in * 1000,
     };
-  } else {
-    throw new Error(`Error refreshing discord token: [${resp.status}] ${resp.statusText}`);
-  }
+  } else throw new Error(`Error refreshing discord token: [${resp.status}] ${resp.statusText}`);
 }
 
 export async function getDiscordUser(token: string) {
   const resp = await fetch(discordURL + '/oauth2/@me', {
     headers: {
-      Authorization: `Bearer ${token}`,
+      authorization: `Bearer ${token}`,
     },
   });
 
@@ -73,9 +69,7 @@ export async function getDiscordUser(token: string) {
       userId: data.user.id,
       username: data.user.username,
     };
-  } else {
-    throw new Error(`Error fetching discord user: [${resp.status}] ${resp.statusText}`);
-  }
+  } else throw new Error(`Error fetching discord user: [${resp.status}] ${resp.statusText}`);
 }
 
 export async function updateDiscordMetadata(token: string, name: string, metadata: DiscordMetadata) {
@@ -87,14 +81,12 @@ export async function updateDiscordMetadata(token: string, name: string, metadat
     }),
     method: 'PUT',
     headers: {
-      Authorization: `Bearer ${token}`,
+      authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
   });
 
-  if (!resp.ok) {
-    throw new Error(`Error updating discord metadata: [${resp.status}] ${resp.statusText}`);
-  }
+  if (!resp.ok) throw new Error(`Error updating discord metadata: [${resp.status}] ${resp.statusText}`);
 }
 
 interface DiscordMetadata {
