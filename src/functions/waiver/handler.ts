@@ -21,7 +21,7 @@ const waiver: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // need to check if the user has already submitted a waiver
-    if (checkIfFileExists(process.env.WAIVER_BUCKET, `${event.body.email}.pdf`)) {
+    if (await checkIfFileExists(process.env.WAIVER_BUCKET, `${event.body.email}.pdf`)) {
       return {
         statusCode: 400,
         body: JSON.stringify({

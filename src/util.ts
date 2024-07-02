@@ -70,15 +70,10 @@ AWS.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
 });
 
-interface S3Params {
-  Bucket: string;
-  Key: string;
-}
-
 export async function checkIfFileExists(bucketName: string, objectKey: string): Promise<boolean> {
   const s3 = new AWS.S3();
 
-  const params: S3Params = {
+  const params = {
     Bucket: bucketName,
     Key: objectKey,
   };
