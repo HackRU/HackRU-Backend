@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { MongoClient } from 'mongodb';
 import type { Collection } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
+import AWS from 'aws-sdk';
 
 // cache connection so only one copy is used
 export class MongoDB {
@@ -61,3 +63,44 @@ export function ensureRoles(user: UserProfile, roles: string[]): boolean {
 
   return false;
 }
+
+AWS.config.update({
+  region: 'us-east-1', 
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+});
+
+interface S3Params {
+  Bucket: string, 
+  Key: string
+}
+
+export async function checkIfFileExists(bucketName: string, objectKey: string): Promise<boolean> {
+  const s3 = new AWS.S3();
+
+  const params: S3Params = {
+    Bucket: bucketName, 
+    Key: objectKey
+  }
+  try {
+    await s3.headObject(params).promise();
+    return true;
+  } catch (error) {
+    if (error.code === 'NotFound') 
+      return false;
+  }
+  return false;
+}
+
+export function generatePresignedUrl(bucketName: string, objectKey: string): string {
+  const s3 = new AWS.S3();
+
+  const params = {
+    Bucket: bucketName, 
+    Key: objectKey,
+    Expires: 3600, // expiration time in seconds (1 hr)
+    ContentType: 'application/pdf', // specify the content type
+  };
+
+  return s3.getSignedUrl('putObject', params);
+} 
