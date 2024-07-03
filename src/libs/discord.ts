@@ -13,14 +13,14 @@ import type {
 
 const discordURL = 'https://discord.com/api/v10';
 
-export async function getDiscordTokens(code: string) {
+export async function getDiscordTokens(code: string, redirectURI: string) {
   const resp = await fetch(discordURL + '/oauth2/token', {
     body: new URLSearchParams({
       client_id: process.env.DISCORD_CLIENT_ID,
       client_secret: process.env.DISCORD_CLIENT_SECRET,
       grant_type: 'authorization_code',
       code: code,
-      redirect_uri: process.env.DISCORD_REDIRECT_URI,
+      redirect_uri: redirectURI,
     }),
     method: 'POST',
     headers: {

@@ -37,7 +37,7 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
       };
     }
 
-    const tokens = await discordAPI.getDiscordTokens(event.body.code);
+    const tokens = await discordAPI.getDiscordTokens(event.body.code, event.body.redirect_uri);
     const discordUser = await discordAPI.getDiscordUser(tokens.accessToken);
     await discordAPI.updateDiscordMetadata(tokens.accessToken, user.first_name + ' ' + user.last_name, {
       verified: new Date().toISOString(),
