@@ -81,6 +81,13 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       day_of: {
         checkIn: false,
       },
+      discord: {
+        user_id: '',
+        username: '',
+        access_token: '',
+        refresh_token: '',
+        expires_at: 0,
+      },
     };
 
     await users.insertOne(doc);
