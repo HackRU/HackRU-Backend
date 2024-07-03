@@ -5,6 +5,7 @@ import create from '@functions/create';
 import update from '@functions/update';
 import authorize from '@functions/authorize';
 import attendEvent from '@functions/attend-event';
+import read from '@functions/read';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -29,7 +30,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, create, authorize, update, attendEvent },
+  functions: { hello, create, authorize, update, attendEvent, read },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
