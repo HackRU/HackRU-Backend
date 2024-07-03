@@ -6,6 +6,8 @@ import update from '@functions/update';
 import authorize from '@functions/authorize';
 import attendEvent from '@functions/attend-event';
 import discord from '@functions/discord';
+import waiver from '@functions/waiver';
+import resume from '@functions/resume';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -30,7 +32,7 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, create, authorize, update, attendEvent, discord },
+  functions: { hello, create, authorize, update, attendEvent, waiver, resume, discord },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
