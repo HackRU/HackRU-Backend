@@ -6,4 +6,3 @@ export { default as update } from './update';
 export { default as read } from './read';
 export { default as waiver } from './waiver';
 export { default as resume } from './resume';
-

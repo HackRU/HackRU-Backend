@@ -9,7 +9,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
     // Check if token is valid
-    const isValidToken = validateToken(event.body.token, process.env.JWT_SECRET, event.body.auth_email);
+    const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
     if (!isValidToken) {
       return {
         statusCode: 401,
@@ -44,13 +44,13 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
         statusCode: 401,
         body: JSON.stringify({
           statusCode: 401,
-          message: 'Unauthorized role.',
+          message: 'Unauthorized. Auth user is not an organizer/director/hacker.',
         }),
       };
     }
 
-    const lookupEmail = event.body.email;
-    if (authUser.role === 'hacker' && authUser.email !== lookupEmail) {
+    const lookupEmail = event.body.email.toLowerCase();
+    if (!authUser.role['director'] && !authUser.role['organizer'] && authUser.email !== lookupEmail) {
       return {
         statusCode: 403,
         body: JSON.stringify({
@@ -62,13 +62,13 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
 
     // Find the user
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    const user = await users.findOne({ email: lookupEmail }, { projection: { password: 0, _id: 0 } }); // exclude password and id
-    if (!user) {
+    const lookUpUser = await users.findOne({ email: lookupEmail }, { projection: { password: 0, _id: 0 } }); // exclude password and id
+    if (!lookUpUser) {
       return {
         statusCode: 404,
         body: JSON.stringify({
           statusCode: 404,
-          message: 'User not found.',
+          message: 'Look-up user not found.',
         }),
       };
     }
@@ -76,7 +76,7 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
     // Return user data
     return {
       statusCode: 200,
-      body: JSON.stringify(user),
+      body: JSON.stringify(lookUpUser),
     };
   } catch (error) {
     console.error('Error reading user:', error);
