@@ -1,4 +1,4 @@
-import { main } from '../src/functions/waiver/handler';
+import { main } from '../src/functions/resume/handler';
 import { createEvent, mockContext } from './helper';
 import * as util from '../src/util';
 
@@ -8,7 +8,7 @@ jest.mock('../src/util', () => ({
   generatePresignedUrl: jest.fn().mockReturnValue('presigned-url'),
 }));
 
-describe('/waiver tests', () => {
+describe('/resume tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -17,7 +17,7 @@ describe('/waiver tests', () => {
     email: 'hacker@hackru.org',
     auth_token: 'mockAuthToken',
   };
-  const path = '/waiver';
+  const path = '/resume';
   const httpMethod = 'POST';
   const mockCallback = jest.fn();
 
@@ -31,13 +31,13 @@ describe('/waiver tests', () => {
     expect(JSON.parse(res.body).message).toBe('Unauthorized');
   });
 
-  it('user has already uploaded waiver', async () => {
+  it('user has already uploaded resume', async () => {
     const mockEvent = createEvent(userData, path, httpMethod);
     mockCheckIfFileExist.mockReturnValueOnce(true);
 
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body).message).toBe('You already submitted a waiver');
+    expect(JSON.parse(res.body).message).toBe('You already submitted a resume');
   });
 
   it('success case, return a presigned url', async () => {
