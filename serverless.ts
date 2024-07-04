@@ -5,6 +5,10 @@ import create from '@functions/create';
 import update from '@functions/update';
 import authorize from '@functions/authorize';
 import attendEvent from '@functions/attend-event';
+import discord from '@functions/discord';
+import read from '@functions/read';
+import waiver from '@functions/waiver';
+import resume from '@functions/resume';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -29,14 +33,14 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, create, authorize, update, attendEvent },
+  functions: { hello, create, authorize, update, attendEvent, waiver, resume, read, discord },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
       bundle: true,
       minify: false,
       sourcemap: true,
-      exclude: ['aws-sdk'],
+      exclude: [],
       target: 'node14',
       define: { 'require.resolve': undefined },
       platform: 'node',

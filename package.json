@@ -12,15 +12,16 @@
   "dependencies": {
     "@middy/core": "^3.4.0",
     "@middy/http-json-body-parser": "^3.4.0",
-    "@types/supertest": "^6.0.2",
+    "aws-sdk": "^2.1651.0",
     "aws-serverless-express": "^3.4.0",
     "bcryptjs": "^2.4.3",
+    "discord-api-types": "^0.37.91",
     "dotenv": "^16.4.5",
     "jsonwebtoken": "^9.0.2",
-    "middy": "^0.36.0",
+    "middy": "^0.24.0",
     "middyfy": "^1.0.0",
     "mongodb": "^6.7.0",
-    "testing-library": "^0.0.2"
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
@@ -46,7 +47,6 @@
     "serverless": "^3.39.0",
     "serverless-esbuild": "^1.23.3",
     "serverless-offline": "^13.6.0",
-    "supertest": "^7.0.0",
     "ts-jest": "^29.1.4",
     "ts-node": "^10.4.0",
     "tsconfig-paths": "^3.9.0",
