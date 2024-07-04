@@ -97,5 +97,5 @@ export async function updateDiscordMetadata(token: string, name: string, metadat
 
 interface DiscordMetadata {
   verified?: string; // datetime ISO string
-  checkedIn?: 0 | 1; // 0 = false, 1 = true
+  checked_in?: 0 | 1; // 0 = false, 1 = true
 }

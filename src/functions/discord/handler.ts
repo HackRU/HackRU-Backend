@@ -41,7 +41,7 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     const discordUser = await discordAPI.getDiscordUser(tokens.accessToken);
     await discordAPI.updateDiscordMetadata(tokens.accessToken, user.first_name + ' ' + user.last_name, {
       verified: new Date().toISOString(),
-      checkedIn: user.registration_status == 'checked-in' ? 1 : 0,
+      checked_in: user.registration_status == 'checked-in' ? 1 : 0,
     });
 
     await users.updateOne(
