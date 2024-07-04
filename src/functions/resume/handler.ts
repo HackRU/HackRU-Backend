@@ -30,8 +30,10 @@ const resume: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       };
     }
 
+    console.log(process.env.AWS_ACCESS_KEY_ID);
+
     // provide a pre-signed url in the return body
-    const presignedUrl = generatePresignedUrl(process.env.RESUME_BUCKET as string, `${event.body.email}.pdf`);
+    const presignedUrl = generatePresignedUrl(process.env.RESUME_BUCKET, `${event.body.email}.pdf`);
     return {
       statusCode: 200,
       body: JSON.stringify({
