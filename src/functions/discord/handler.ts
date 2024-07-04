@@ -23,7 +23,7 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
   }
 
   try {
-    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
     const users = db.getCollection('users');
 
