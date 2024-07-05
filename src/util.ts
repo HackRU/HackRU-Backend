@@ -136,7 +136,7 @@ export async function generatePresignedUrl(bucketName: string, objectKey: string
   const params = {
     Bucket: bucketName,
     Key: objectKey,
-    Expires: 60, // expiration time in seconds (1 min)
+    Expires: 3600, // expiration time in seconds (1 min)
     ContentType: 'application/pdf', // specify the content type
   };
 
