@@ -127,8 +127,6 @@ export async function checkIfFileExists(bucketName: string, objectKey: string): 
 export async function generatePresignedUrl(bucketName: string, objectKey: string): Promise<string> {
   const credentials = await getSessionToken();
 
-  console.log(`|${credentials.AccessKeyId}|`);
-
   const s3 = new AWS.S3({
     accessKeyId: credentials.AccessKeyId,
     secretAccessKey: credentials.SecretAccessKey,
