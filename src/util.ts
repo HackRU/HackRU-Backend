@@ -3,8 +3,8 @@ import { MongoClient } from 'mongodb';
 import type { Collection } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { S3Client, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 
 // cache connection so only one copy is used
 export class MongoDB {
@@ -104,7 +104,6 @@ export function ensureRoles(user: UserProfile, roles: string[]): boolean {
 // });
 
 export async function checkIfFileExists(bucketName: string, objectKey: string): Promise<boolean> {
-
   // const s3 = new AWS.S3({
   //   accessKeyId: credentials.AccessKeyId,
   //   secretAccessKey: credentials.SecretAccessKey,
@@ -116,7 +115,7 @@ export async function checkIfFileExists(bucketName: string, objectKey: string): 
       Key: objectKey,
     };
     const s3 = new S3Client({
-      region: "us-east-1",
+      region: 'us-east-1',
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
@@ -132,9 +131,8 @@ export async function checkIfFileExists(bucketName: string, objectKey: string): 
 }
 
 export async function generatePresignedUrl(bucketName: string, objectKey: string): Promise<string> {
-
   const s3 = new S3Client({
-    region: "us-east-1",
+    region: 'us-east-1',
     credentials: {
       accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
