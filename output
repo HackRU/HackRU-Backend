@@ -1,6 +1,0 @@
-[dotenv@16.4.5][INFO] Loading env from encrypted .env.vault
-AKIAUTOUNRHNRFIGP2T4
-{
-    "statusCode": 200,
-    "body": "{\"message\":\"Upload the resume through the generated URL. (Use \\\"PUT\\\" method)\",\"url\":\"https://resumes-f24.s3.amazonaws.com/test%40test123.org.pdf?AWSAccessKeyId=AKIAUTOUNRHNRFIGP2T4&Content-Type=application%2Fpdf&Expires=1720131985&Signature=67mHWKALbDPaq4k%2BvZnmqUjpTiQ%3D\"}"
-}
