@@ -114,13 +114,7 @@ export async function checkIfFileExists(bucketName: string, objectKey: string): 
       Bucket: bucketName,
       Key: objectKey,
     };
-    const s3 = new S3Client({
-      region: 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    });
+    const s3 = new S3Client();
     const command = new HeadObjectCommand(params);
     await s3.send(command);
     return true;
@@ -131,13 +125,7 @@ export async function checkIfFileExists(bucketName: string, objectKey: string): 
 }
 
 export async function generatePresignedUrl(bucketName: string, objectKey: string): Promise<string> {
-  const s3 = new S3Client({
-    region: 'us-east-1',
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-    },
-  });
+  const s3 = new S3Client();
 
   const command = new PutObjectCommand({
     Bucket: bucketName,
