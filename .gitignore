@@ -141,5 +141,8 @@ dist
 .env*
 .flaskenv*
 !.env.project
-!.env.vault
+!.env.vault.dev
+!.env.vault.prod
 
+
+!.env.vault
