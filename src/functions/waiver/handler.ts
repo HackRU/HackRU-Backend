@@ -31,7 +31,7 @@ const waiver: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // provide a pre-signed url in the return body
-    const presignedUrl = generatePresignedUrl(process.env.WAIVER_BUCKET as string, `${event.body.email}.pdf`);
+    const presignedUrl = await generatePresignedUrl(process.env.WAIVER_BUCKET, `${event.body.email}.pdf`);
     return {
       statusCode: 200,
       body: JSON.stringify({

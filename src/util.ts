@@ -22,10 +22,6 @@ export class MongoDB {
   }
 
   public async connect(): Promise<void> {
-    // const ping = await this.client.db().command({ ping: 1 });
-    // if (ping?.ok === 1) {
-    //     await this.client.connect();
-    // }
     try {
       await this.client.db().command({ ping: 1 });
       // Ping was successful
@@ -65,50 +61,7 @@ export function ensureRoles(user: UserProfile, roles: string[]): boolean {
   return false;
 }
 
-// interface GetSessionTokenResponse {
-//   AccessKeyId: string;
-//   SecretAccessKey: string;
-//   SessionToken: string;
-//   Expiration: Date;
-// }
-
-// this func generate a session token, to be used in tandem with the temporary aws credentials
-// async function getSessionToken(): Promise<GetSessionTokenResponse> {
-//   AWS.config.update({
-//     region: 'us-east-1',
-//     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//   });
-
-//   // Create a new STS object
-//   const sts = new AWS.STS();
-
-//   // GetSessionToken to retrieve temporary credentials
-//   const data = await sts.getSessionToken().promise();
-
-//   // Extract and return the credentials
-//   const response: GetSessionTokenResponse = {
-//     AccessKeyId: data.Credentials!.AccessKeyId,
-//     SecretAccessKey: data.Credentials!.SecretAccessKey,
-//     SessionToken: data.Credentials!.SessionToken,
-//     Expiration: data.Credentials!.Expiration!,
-//   };
-
-//   return response;
-// }
-
-// AWS.config.update({
-//   region: 'us-east-1',
-//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-// });
-
 export async function checkIfFileExists(bucketName: string, objectKey: string): Promise<boolean> {
-  // const s3 = new AWS.S3({
-  //   accessKeyId: credentials.AccessKeyId,
-  //   secretAccessKey: credentials.SecretAccessKey,
-  //   sessionToken: credentials.SessionToken,
-  // });
   try {
     const params = {
       Bucket: bucketName,
