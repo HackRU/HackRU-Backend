@@ -143,6 +143,3 @@ dist
 !.env.project
 !.env.vault.dev
 !.env.vault.prod
-
-
-!.env.vault
