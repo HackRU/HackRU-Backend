@@ -7,3 +7,4 @@ export { default as discord } from './discord';
 export { default as read } from './read';
 export { default as waiver } from './waiver';
 export { default as resume } from './resume';
+export { default as forgotPassword } from './forgot-password';
