@@ -1,5 +1,6 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
+import * as bcrypt from 'bcryptjs';
 
 import schema from './schema';
 
@@ -7,6 +8,8 @@ import { MongoDB } from '../../util';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import * as jwt from 'jsonwebtoken';
+
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
@@ -26,12 +29,24 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
         }),
       };
     }
-
+    const payload = {
+      email: user.email,
+      id: user._id,
+      time: Date.now(),
+    };
     // generate password reset token
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '3d' });
 
     // hash token
+    const hashedToken = await bcrypt.hash(token, 8);
 
+    const forgotPasswordDB = db.getCollection('forgot-password');
     // store email, hashed token, and expiration (15 min) in db
+    await forgotPasswordDB.insertOne({
+      email: email,
+      token: hashedToken,
+      expiration: Date.now() + 15 * 60 * 1000,
+    });
 
     // send email with reset info (original token before hash)
 
