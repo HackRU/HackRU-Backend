@@ -1,15 +1,16 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
-import * as bcrypt from 'bcryptjs';
 
 import schema from './schema';
 
 import { MongoDB } from '../../util';
 
+import * as crypto from 'crypto';
+import * as bcrypt from 'bcryptjs';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
+
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-import * as jwt from 'jsonwebtoken';
-
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
@@ -30,21 +31,39 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
       };
     }
 
-    // generate password reset token
-    const token = require('crypto').randomBytes(16).toString('base64');
-
-    // hash token
+    const token = crypto.randomBytes(8).toString('base64');
     const hashedToken = await bcrypt.hash(token, 8);
 
     const forgotPasswordDB = db.getCollection('forgot-password');
-    // store email, hashed token, and expiration (15 min) in db
     await forgotPasswordDB.insertOne({
       email: email,
       token: hashedToken,
       expiration: Date.now() + 15 * 60 * 1000,
     });
 
-    // send email with reset info (original token before hash)
+    const ses = new SESv2Client();
+    const passwordReset = new SendEmailCommand({
+      FromEmailAddress: 'no-reply@hackru.org',
+      Destination: {
+        ToAddresses: [email],
+      },
+      Content: {
+        Simple: {
+          Subject: {
+            Data: 'HackRU Password Reset',
+          },
+          Body: {
+            Html: {
+              Data: `<p>Hey ${user.first_name + ' ' + user.last_name}!</p><p>Here is your HackRU password reset code: <strong>${token}</strong></p><p>This code expires in 15 minutes. Do not share it with others.</p><p>If you did not request a password reset, you can safely ignore this message.</p>`,
+            },
+            Text: {
+              Data: `Hey ${user.first_name + ' ' + user.last_name}!\n\nHere is your HackRU password reset code: ${token}\n\nThis code expires in 15 minutes. Do not share it with others.\n\nIf you did not request a password reset, you can safely ignore this message.`,
+            },
+          },
+        },
+      },
+    });
+    await ses.send(passwordReset);
 
     return {
       statusCode: 200,
