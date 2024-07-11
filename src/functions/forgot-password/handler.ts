@@ -35,7 +35,7 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
       time: Date.now(),
     };
     // generate password reset token
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '3d' });
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '15m' });
 
     // hash token
     const hashedToken = await bcrypt.hash(token, 8);
