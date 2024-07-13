@@ -31,7 +31,7 @@ describe('Reset password tests', () => {
   const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
 
   // case 1
-  test('Invalid email', async () => {
+  test('password change request does not exist', async () => {
     findOneMock.mockReturnValueOnce(null);
 
     const userData = {
@@ -45,7 +45,7 @@ describe('Reset password tests', () => {
     const result = await main(mockEvent, mockContext, mockCallback);
 
     expect(result.statusCode).toBe(403);
-    expect(JSON.parse(result.body).message).toBe('Invalid email');
+    expect(JSON.parse(result.body).message).toBe('You did not request a password change');
   });
 
   // case 2

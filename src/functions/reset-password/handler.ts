@@ -24,7 +24,7 @@ const resetPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
       return {
         statusCode: 403,
         body: JSON.stringify({
-          message: 'Invalid email',
+          message: 'You did not request a password change',
         }),
       };
     }
