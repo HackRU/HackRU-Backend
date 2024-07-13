@@ -21,7 +21,7 @@ const serverlessConfiguration: AWS = {
   provider: {
     name: 'aws',
     runtime: 'nodejs20.x',
-    stage: 'dev',
+    stage: process.env.STAGE,
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true,

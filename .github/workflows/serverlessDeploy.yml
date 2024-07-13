@@ -27,7 +27,16 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
+      - name: Build dev .env.vault
+        if: github.ref_name == 'dev'
+        run: cp .env.vault.dev .env.vault
+
+      - name: Build prod .env.vault
+        if: github.ref_name == 'main'
+        run: cp .env.vault.prod .env.vault
+
       - run: npm ci
+
       - name: serverless deploy
         uses: serverless/github-action@v3.2
         with:
