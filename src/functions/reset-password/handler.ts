@@ -44,7 +44,7 @@ const resetPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const storedDatetime = new Date(existingEmail.expiration);
     const now = new Date();
 
-    const hasExpired = now.getTime() - storedDatetime.getTime() > 15 * 60 * 1000; // if greater than 15 minutes
+    const hasExpired = now > storedDatetime; // if greater than 15 minutes
     if (hasExpired) {
       return {
         statusCode: 401,
