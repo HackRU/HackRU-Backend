@@ -9,27 +9,7 @@ jest.mock('@aws-sdk/client-sesv2', () => {
     SESv2Client: jest.fn().mockReturnValue({
       send: jest.fn(),
     }),
-    SendEmailCommand: jest.fn().mockReturnValue({
-      FromEmailAddress: 'no-reply@hackru.org',
-      Destination: {
-        ToAddresses: 'test@test.org',
-      },
-      Content: {
-        Simple: {
-          Subject: {
-            Data: 'HackRU Password Reset',
-          },
-          Body: {
-            Html: {
-              Data: `<p>Hey test user!</p>`,
-            },
-            Text: {
-              Data: `Hey test user!`,
-            },
-          },
-        },
-      },
-    }),
+    SendEmailCommand: jest.fn(),
   };
 });
 jest.mock('../src/util', () => ({
