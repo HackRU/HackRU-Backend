@@ -35,7 +35,19 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, create, authorize, update, attendEvent, waiver, resume, read, discord, forgotPassword, resetPassword },
+  functions: {
+    hello,
+    create,
+    authorize,
+    update,
+    attendEvent,
+    waiver,
+    resume,
+    read,
+    discord,
+    forgotPassword,
+    resetPassword,
+  },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
