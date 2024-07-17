@@ -1,6 +1,5 @@
 import { main } from '../src/functions/resume/handler';
 import { createEvent, mockContext } from './helper';
-//import * as util from '../src/util';
 
 jest.mock('../src/util', () => ({
   validateToken: jest.fn().mockReturnValueOnce(false).mockReturnValue(true),
