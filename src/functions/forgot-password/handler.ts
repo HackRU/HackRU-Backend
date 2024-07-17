@@ -31,15 +31,20 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
       };
     }
 
-    const token = crypto.randomInt(0, 9999999).toString().padStart(7, '0');
+    const token = crypto.randomBytes(8).toString('hex');
     const hashedToken = await bcrypt.hash(token, 8);
 
     const forgotPasswordDB = db.getCollection('forgot-password');
-    await forgotPasswordDB.insertOne({
-      email: email,
-      token: hashedToken,
-      expiration: Date.now() + 15 * 60 * 1000,
-    });
+    await forgotPasswordDB.findOneAndUpdate(
+      { email: email },
+      {
+        $set: {
+          token: hashedToken,
+          expiration: Date.now() + 15 * 60 * 1000,
+        },
+      },
+      { upsert: true }
+    );
 
     const ses = new SESv2Client();
     const passwordReset = new SendEmailCommand({
@@ -54,10 +59,10 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
           },
           Body: {
             Html: {
-              Data: `<p>Hey ${user.first_name + ' ' + user.last_name}!</p><p>Here is your HackRU password reset code: <strong>${token}</strong></p><p>This code expires in 15 minutes. Do not share it with others.</p><p>If you did not request a password reset, you can safely ignore this message.</p><p>- HackRU Team</p>`,
+              Data: `<p>Hey ${user.first_name + ' ' + user.last_name}!</p><p>You can use this link to reset your HackRU password: <a href="https://hackru.org/magic/${token}">https://hackru.org/magic/${token}</a></p><p>This link expires in 15 minutes. Do not share it with others.</p><p>If you did not request a password reset, you can safely ignore this message.</p><p>- HackRU Team</p>`,
             },
             Text: {
-              Data: `Hey ${user.first_name + ' ' + user.last_name}!\n\nHere is your HackRU password reset code: ${token}\n\nThis code expires in 15 minutes. Do not share it with others.\n\nIf you did not request a password reset, you can safely ignore this message.\n\n- HackRU Team`,
+              Data: `Hey ${user.first_name + ' ' + user.last_name}!\n\nYou can use this link to reset your HackRU password: https://hackru.org/magic/${token}\n\nThis link expires in 15 minutes. Do not share it with others.\n\nIf you did not request a password reset, you can safely ignore this message.\n\n- HackRU Team`,
             },
           },
         },
