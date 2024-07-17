@@ -20,7 +20,7 @@ jest.mock('../src/util', () => ({
       disconnect: jest.fn(),
       getCollection: jest.fn().mockReturnValue({
         findOne: jest.fn().mockReturnValueOnce(null).mockReturnValue({ email: 'test@test.org' }),
-        insertOne: jest.fn().mockReturnValue({ insertedId: 'someId' }),
+        findOneAndUpdate: jest.fn().mockReturnValue({ insertedId: 'someId' }),
       }),
     }),
   },
