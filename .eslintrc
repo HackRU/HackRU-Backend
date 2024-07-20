@@ -125,7 +125,8 @@
         "format": [
           "camelCase",
           "snake_case",
-          "UPPER_CASE"
+          "UPPER_CASE",
+          "PascalCase"
         ]
       },
       {

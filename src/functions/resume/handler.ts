@@ -3,7 +3,7 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 
 import schema from './schema';
-import { validateToken, checkIfFileExists, generatePresignedUrl } from '../../util';
+import { validateToken, generatePresignedUrl } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -16,16 +16,6 @@ const resume: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         statusCode: 401,
         body: JSON.stringify({
           message: 'Unauthorized',
-        }),
-      };
-    }
-
-    // need to check if the user has already submitted a resume
-    if (await checkIfFileExists(process.env.RESUME_BUCKET, `${event.body.email}.pdf`)) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          message: 'You already submitted a resume',
         }),
       };
     }

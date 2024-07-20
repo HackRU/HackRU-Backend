@@ -9,6 +9,8 @@ import discord from '@functions/discord';
 import read from '@functions/read';
 import waiver from '@functions/waiver';
 import resume from '@functions/resume';
+import resetPassword from '@functions/reset-password';
+import forgotPassword from '@functions/forgot-password';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -21,7 +23,7 @@ const serverlessConfiguration: AWS = {
   provider: {
     name: 'aws',
     runtime: 'nodejs20.x',
-    stage: 'prod',
+    stage: process.env.STAGE,
     apiGateway: {
       minimumCompressionSize: 1024,
       shouldStartNameWithService: true,
@@ -33,7 +35,19 @@ const serverlessConfiguration: AWS = {
     },
   },
   // import the function via paths
-  functions: { hello, create, authorize, update, attendEvent, waiver, resume, read, discord },
+  functions: {
+    hello,
+    create,
+    authorize,
+    update,
+    attendEvent,
+    waiver,
+    resume,
+    read,
+    discord,
+    forgotPassword,
+    resetPassword,
+  },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
     esbuild: {
