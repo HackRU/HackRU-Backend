@@ -12,7 +12,6 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
     // validate auth token
-    /*
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
     if (!isValidToken) {
       return {
@@ -23,7 +22,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         }),
       };
     }
-    */
+  
     // Connect to MongoDB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
@@ -43,7 +42,6 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     // ensure that only directors/organizers (auth_email) can call this route
-    /*
     const authUser = await users.findOne({ email: event.body.auth_email });
     if (!authUser) {
       return {
@@ -63,7 +61,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         }),
       };
     }
-    */
+  
     // conditions to check a user into events during hackathon
     const hackEvent = event.body.event;
 
