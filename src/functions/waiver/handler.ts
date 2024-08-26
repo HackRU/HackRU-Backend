@@ -26,6 +26,7 @@ const waiver: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         statusCode: 400,
         body: JSON.stringify({
           message: 'You already submitted a waiver',
+          hasUploaded: true
         }),
       };
     }
