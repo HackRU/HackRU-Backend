@@ -37,6 +37,7 @@ const waiver: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       body: JSON.stringify({
         message: 'Upload the waiver through the generated URL. (Use "PUT" method)',
         url: presignedUrl,
+        hasUploaded: true,
       }),
     };
   } catch (error) {
