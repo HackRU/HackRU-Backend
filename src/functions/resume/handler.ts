@@ -27,7 +27,7 @@ const resume: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       body: JSON.stringify({
         message: 'Upload the resume through the generated URL. (Use "PUT" method)',
         url: presignedUrl,
-        hasUploaded: true
+        hasUploaded: true,
       }),
     };
   } catch (error) {
