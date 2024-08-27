@@ -3,7 +3,7 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 
 import schema from './schema';
-import { validateToken, generatePresignedUrl } from '../../util';
+import { validateToken, generatePresignedUrl, checkIfFileExists } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -22,14 +22,25 @@ const resume: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // provide a pre-signed url in the return body
     const presignedUrl = await generatePresignedUrl(process.env.RESUME_BUCKET, `${event.body.email}.pdf`);
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: 'Upload the resume through the generated URL. (Use "PUT" method)',
-        url: presignedUrl,
-        hasUploaded: true,
-      }),
-    };
+    if (await checkIfFileExists(process.env.RESUME_BUCKET, `${event.body.email}.pdf`)) {
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: 'Upload the resume through the generated URL. (Use "PUT" method)',
+          url: presignedUrl,
+          hasUploaded: true,
+        }),
+      }
+    } else {
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            message: 'Upload the resume through the generated URL. (Use "PUT" method)',
+            url: presignedUrl,
+            hasUploaded: false,
+          }),
+        };
+    }
   } catch (error) {
     console.error('Error uploading resume', error);
     return {
