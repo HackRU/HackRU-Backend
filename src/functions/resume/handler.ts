@@ -30,16 +30,16 @@ const resume: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
           url: presignedUrl,
           hasUploaded: true,
         }),
-      }
+      };
     } else {
-        return {
-          statusCode: 200,
-          body: JSON.stringify({
-            message: 'Upload the resume through the generated URL. (Use "PUT" method)',
-            url: presignedUrl,
-            hasUploaded: false,
-          }),
-        };
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          message: 'Upload the resume through the generated URL. (Use "PUT" method)',
+          url: presignedUrl,
+          hasUploaded: false,
+        }),
+      };
     }
   } catch (error) {
     console.error('Error uploading resume', error);
