@@ -38,6 +38,7 @@ describe('/waiver tests', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body).message).toBe('You already submitted a waiver');
+    expect(JSON.parse(res.body).hasUploaded).toBe(true);
   });
 
   it('success case, return a presigned url', async () => {
@@ -47,5 +48,6 @@ describe('/waiver tests', () => {
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).url).toBe('presigned-url');
+    expect(JSON.parse(res.body).hasUploaded).toBe(false);
   });
 });

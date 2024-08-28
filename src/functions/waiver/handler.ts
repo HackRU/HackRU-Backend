@@ -26,6 +26,7 @@ const waiver: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         statusCode: 400,
         body: JSON.stringify({
           message: 'You already submitted a waiver',
+          hasUploaded: true,
         }),
       };
     }
@@ -37,7 +38,7 @@ const waiver: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       body: JSON.stringify({
         message: 'Upload the waiver through the generated URL. (Use "PUT" method)',
         url: presignedUrl,
-        hasUploaded: true,
+        hasUploaded: false,
       }),
     };
   } catch (error) {
