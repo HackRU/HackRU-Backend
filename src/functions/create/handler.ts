@@ -88,6 +88,8 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         refresh_token: '',
         expires_at: 0,
       },
+      created_at: new Date().toISOString(),
+      registered_at: null,
     };
 
     await users.insertOne(doc);
