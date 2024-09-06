@@ -1,3 +1,3 @@
 export const registrationStart = '07/02/24';
 export const registrationEnd = '10/27/24';
-export const pointsCollection = '';
+export const pointsCollection = 'f24-points-syst';
