@@ -76,6 +76,10 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       };
     }
 
+    // add registered_at time if status is updated
+    if (event.body.updates?.$set?.registration_status == 'registered')
+      event.body.updates.$set['registered_at'] = new Date().toISOString();
+
     // call updates
     // directors/organizers can update anyone, hackers can only update themselves
     if (authUser.role['director'] || authUser.role['organizer'])
@@ -134,7 +138,9 @@ function validateUpdates(updates: Updates, registrationStatus?: string): boolean
     if ('registration_status' in setUpdates) {
       const goalStatus = setUpdates.registration_status as string;
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
-    } else if ('_id' in setUpdates || 'password' in setUpdates || 'discord' in setUpdates) return false;
+    }
+    if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates))
+      return false;
     return true;
   }
 }
