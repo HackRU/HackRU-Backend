@@ -24,7 +24,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     // Connect to MongoDB
-    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
     const users = db.getCollection('users');
 
