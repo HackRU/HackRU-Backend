@@ -164,15 +164,12 @@ function validateUpdates(updates: Updates, registrationStatus?: string): boolean
           'ethnicity',
           'phone_number',
         ].some((registrationField) => !(registrationField in setUpdates) || setUpdates[registrationField] === '')
-      ) {
+      )
         return false;
-      } else {
-        return true;
-      }
+      else return true;
     }
-    if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates)) {
+    if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates))
       return false;
-    }
 
     return true;
   }
