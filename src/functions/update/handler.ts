@@ -128,13 +128,46 @@ function isValidRegistrationStatusUpdate(current: string, goal: string): boolean
 }
 
 // return true or false whether the proposed update is valid or not
+
 function validateUpdates(updates: Updates, registrationStatus?: string): boolean {
   const setUpdates = updates.$set;
   if (setUpdates) {
     if ('registration_status' in setUpdates) {
       const goalStatus = setUpdates.registration_status as string;
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
-    } else if ('_id' in setUpdates || 'password' in setUpdates) return false;
+      //validates for unregistered users going to registered status
+      if (
+        (registrationStatus === undefined || registrationStatus == 'unregistered') &&
+        goalStatus === 'registered' &&
+        [
+          'email',
+          'password',
+          'link',
+          'github',
+          'major',
+          'short_answer',
+          'shirt_size',
+          'first_name',
+          'last_name',
+          'dietary_restrictions',
+          'special_needs',
+          'date_of_birth',
+          'school',
+          'grad_year',
+          'gender',
+          'level_of_study',
+          'ethnicity',
+          'phone_number',
+        ].some((registrationField) => !(registrationField in setUpdates) || setUpdates[registrationField] === '')
+      ) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+    if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates)) {
+      return false;
+    }
     return true;
   }
 }
