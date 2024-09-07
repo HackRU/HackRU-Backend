@@ -116,10 +116,13 @@ export interface UserDoc {
   phone_number: string;
   registration_status: RegistrationStatus;
   day_of: {
-    event: {
-      attend: number;
-      time: string[];
-    };
+    event: Record<
+      string,
+      {
+        attend: number;
+        time: string[];
+      }
+    >;
   };
   discord: {
     user_id: string;
