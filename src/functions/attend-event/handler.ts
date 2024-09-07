@@ -92,7 +92,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         { email: event.body.qr },
         {
           $inc: { [`day_of.event.${hackEvent}.attend`]: 1 },
-          $push: { [`day_of.event.${hackEvent}.time`]: currentTime } as never,
+          $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
         }
       );
     }
