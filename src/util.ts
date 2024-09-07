@@ -1,7 +1,10 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import { MongoClient } from 'mongodb';
 import type { Collection } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 
 // cache connection so only one copy is used
 export class MongoDB {
@@ -19,10 +22,6 @@ export class MongoDB {
   }
 
   public async connect(): Promise<void> {
-    // const ping = await this.client.db().command({ ping: 1 });
-    // if (ping?.ok === 1) {
-    //     await this.client.connect();
-    // }
     try {
       await this.client.db().command({ ping: 1 });
       // Ping was successful
@@ -57,8 +56,36 @@ export interface UserProfile {
 }
 
 export function ensureRoles(user: UserProfile, roles: string[]): boolean {
-  console.log(user);
   for (const role of roles) if (user[role]) return true;
 
   return false;
+}
+
+export async function checkIfFileExists(bucketName: string, objectKey: string): Promise<boolean> {
+  try {
+    const params = {
+      Bucket: bucketName,
+      Key: objectKey,
+    };
+    const s3 = new S3Client();
+    const command = new HeadObjectCommand(params);
+    await s3.send(command);
+    return true;
+  } catch (error) {
+    if (error.code === 'NotFound') return false;
+  }
+  return false;
+}
+
+export async function generatePresignedUrl(bucketName: string, objectKey: string): Promise<string> {
+  const s3 = new S3Client();
+
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: objectKey,
+    ContentType: 'application/pdf', // specify the content type
+  });
+
+  const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
+  return url;
 }

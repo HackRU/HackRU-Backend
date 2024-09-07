@@ -15,6 +15,6 @@ export default {
         },
       },
     },
-    required: ['user_email', 'auth_email', 'auth_token', 'updates'],
   },
+  required: ['user_email', 'auth_email', 'auth_token', 'updates'],
 } as const;

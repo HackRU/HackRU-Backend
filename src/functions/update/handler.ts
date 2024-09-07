@@ -26,7 +26,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // connect to DB
-    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
     const users = db.getCollection('users');
 
@@ -76,11 +76,15 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       };
     }
 
+    // add registered_at time if status is updated
+    if (event.body.updates?.$set?.registration_status == 'registered')
+      event.body.updates.$set['registered_at'] = new Date().toISOString();
+
     // call updates
     // directors/organizers can update anyone, hackers can only update themselves
     if (authUser.role['director'] || authUser.role['organizer'])
-      await users.updateOne({ email: event.body.user_email }, { $set: event.body.updates });
-    else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, { $set: event.body.updates });
+      await users.updateOne({ email: event.body.user_email }, event.body.updates);
+    else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, event.body.updates);
 
     return {
       statusCode: 200,
@@ -135,6 +139,7 @@ function validateUpdates(updates: Updates, registrationStatus?: string): boolean
     if ('registration_status' in setUpdates) {
       const goalStatus = setUpdates.registration_status as string;
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
+
       //validates for unregistered users going to registered status
       if (
         (registrationStatus === undefined || registrationStatus == 'unregistered') &&
@@ -168,6 +173,7 @@ function validateUpdates(updates: Updates, registrationStatus?: string): boolean
     if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates)) {
       return false;
     }
+
     return true;
   }
 }

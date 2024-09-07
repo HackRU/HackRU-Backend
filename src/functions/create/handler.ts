@@ -31,7 +31,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     //hash password
     password = await bcrypt.hash(password, 8);
 
-    const db = MongoDB.getInstance(process.env.DEV_MONGO_URI);
+    const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
 
     //try to pull user from db by email to ensure there is no duplicate registration
@@ -76,11 +76,20 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       gender: event.body.gender ?? '',
       level_of_study: event.body.level_of_study ?? '',
       ethnicity: event.body.ethnicity ?? '',
-      phone_numer: event.body.phone_number ?? '',
+      phone_number: event.body.phone_number ?? '',
       registration_status: event.body.registration_status ?? 'unregistered',
       day_of: {
         checkIn: false,
       },
+      discord: {
+        user_id: '',
+        username: '',
+        access_token: '',
+        refresh_token: '',
+        expires_at: 0,
+      },
+      created_at: new Date().toISOString(),
+      registered_at: null,
     };
 
     await users.insertOne(doc);
