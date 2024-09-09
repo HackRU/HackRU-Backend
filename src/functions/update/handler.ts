@@ -67,8 +67,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // validate updates
-    const cloneUser = JSON.parse(JSON.stringify(updatedUser));
-    const isValidUpdates = validateUpdates(event.body.updates, updatedUser.registration_status, cloneUser);
+    const isValidUpdates = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
     if (!isValidUpdates) {
       return {
         statusCode: 400,
