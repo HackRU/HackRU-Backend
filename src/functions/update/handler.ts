@@ -142,26 +142,29 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
       const goalStatus = setUpdates.registration_status as string;
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
       //validates for unregistered users going to registered status
+
       if ((registrationStatus === undefined || registrationStatus == 'unregistered') && goalStatus === 'registered') {
         if (
-          !user.email ||
-          !user.password ||
-          !user.github ||
-          !user.link ||
-          !user.short_answer ||
-          !user.special_needs ||
-          !user.major ||
-          !user.shirt_size ||
-          !user.first_name ||
-          !user.last_name ||
-          !user.dietary_restrictions ||
-          !user.date_of_birth ||
-          !user.school ||
-          !user.grad_year ||
-          !user.gender ||
-          !user.level_of_study ||
-          !user.ethnicity ||
-          !user.phone_number
+          [
+            'email',
+            'password',
+            'link',
+            'github',
+            'major',
+            'short_answer',
+            'shirt_size',
+            'first_name',
+            'last_name',
+            'dietary_restrictions',
+            'special_needs',
+            'date_of_birth',
+            'school',
+            'grad_year',
+            'gender',
+            'level_of_study',
+            'ethnicity',
+            'phone_number',
+          ].some((registrationField) => !user[registrationField] || user[registrationField] === '')
         )
           return false;
       } else return true;

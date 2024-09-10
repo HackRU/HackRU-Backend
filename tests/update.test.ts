@@ -231,7 +231,6 @@ describe('/update endpoint', () => {
   });
   //case 8
   it('Completed fields for registration, success', async () => {
-    console.log('test 8');
     const completeUserData = {
       user_email: 'test@test.org',
       auth_email: 'testAuth@test.org',
