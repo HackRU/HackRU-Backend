@@ -197,4 +197,85 @@ describe('/update endpoint', () => {
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).message).toBe('User updated successfully');
   });
+  //cause 7
+  it('Incomplete fields for registration', async () => {
+    const incompleteUserData = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          registration_status: 'registered',
+        },
+      },
+    };
+    jest.clearAllMocks();
+    findOneMock.mockReturnValue({
+      //successful update
+      email: 'test@test.org',
+      password: 'test',
+      role: {
+        hacker: true,
+        volunteer: false,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+    });
+    const mockEvent = createEvent(incompleteUserData, '/update', 'POST');
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toBe('Bad updates.');
+  });
+  //case 8
+  it('Completed fields for registration, success', async () => {
+    const completeUserData = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          registration_status: 'registered',
+        },
+      },
+    };
+    jest.clearAllMocks();
+    findOneMock.mockReturnValue({
+      //successful update
+      email: 'test@test.org',
+      password: 'test',
+      role: {
+        hacker: true,
+        volunteer: false,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+      registration_status: 'unregistered',
+      link: 'testLink',
+      github: 'testGithub',
+      major: 'sampleMajor',
+      short_answer: 'sample answer',
+      shirt_size: 'S',
+      first_name: 'firstName',
+      last_name: 'lastName',
+      dietary_restrictions: 'none',
+      special_needs: 'none',
+      date_of_birth: '01/01/2000',
+      school: 'Rutgers',
+      grad_year: '2024',
+      gender: 'gender',
+      level_of_study: 'studyLevel',
+      ethnicity: 'sampleEthnicity',
+      phone_number: 'sampleNumber',
+    });
+
+    const mockEvent = createEvent(completeUserData, '/update', 'POST');
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(200);
+  });
 });

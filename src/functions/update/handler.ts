@@ -7,6 +7,7 @@ import schema from './schema';
 import { MongoDB, validateToken, ensureRoles } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { Document, WithId } from 'mongodb';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
@@ -54,6 +55,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // need to check if user_email exists in DB
     const updatedUser = await users.findOne({ email: event.body.user_email });
+
     if (!updatedUser) {
       return {
         statusCode: 404,
@@ -65,7 +67,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // validate updates
-    const isValidUpdates = validateUpdates(event.body.updates, updatedUser.registration_status);
+    const isValidUpdates = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
     if (!isValidUpdates) {
       return {
         statusCode: 400,
@@ -132,15 +134,44 @@ function isValidRegistrationStatusUpdate(current: string, goal: string): boolean
 }
 
 // return true or false whether the proposed update is valid or not
-function validateUpdates(updates: Updates, registrationStatus?: string): boolean {
+
+function validateUpdates(updates: Updates, registrationStatus?: string, user?: WithId<Document>): boolean {
   const setUpdates = updates.$set;
   if (setUpdates) {
     if ('registration_status' in setUpdates) {
       const goalStatus = setUpdates.registration_status as string;
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
+      //validates for unregistered users going to registered status
+
+      if ((registrationStatus === undefined || registrationStatus == 'unregistered') && goalStatus === 'registered') {
+        if (
+          [
+            'email',
+            'password',
+            'link',
+            'github',
+            'major',
+            'short_answer',
+            'shirt_size',
+            'first_name',
+            'last_name',
+            'dietary_restrictions',
+            'special_needs',
+            'date_of_birth',
+            'school',
+            'grad_year',
+            'gender',
+            'level_of_study',
+            'ethnicity',
+            'phone_number',
+          ].some((registrationField) => !user[registrationField] || user[registrationField] === '')
+        )
+          return false;
+      } else return true;
     }
     if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates))
       return false;
+
     return true;
   }
 }

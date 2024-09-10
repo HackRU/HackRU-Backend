@@ -4,7 +4,7 @@ import { middyfy } from '@libs/lambda';
 
 import schema from './schema';
 
-import { MongoDB, validateToken, ensureRoles } from '../../util';
+import { MongoDB, validateToken, ensureRoles, UserDoc } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -26,7 +26,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     // Connect to MongoDB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const users = db.getCollection('users');
+    const users = db.getCollection<UserDoc>('users');
 
     const attendEvent = await users.findOne({ email: event.body.qr });
 
@@ -65,10 +65,19 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     // conditions to check a user into events during hackathon
     const hackEvent = event.body.event;
 
+    // gets the current time
+    const currentTime = new Date().toISOString();
+
     // if never attended this event before
-    if (attendEvent.day_of?.event?.[hackEvent] === undefined)
-      await users.updateOne({ email: event.body.qr }, { $set: { [`day_of.event.${hackEvent}`]: 1 } });
-    else if (event.body.again === false) {
+    if (attendEvent.day_of?.event?.[hackEvent] === undefined) {
+      await users.updateOne(
+        { email: event.body.qr },
+        {
+          $set: { [`day_of.event.${hackEvent}.attend`]: 1 },
+          $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
+        }
+      );
+    } else if (event.body.again === false) {
       // if can only attend this event once and user has already attended
       return {
         statusCode: 409,
@@ -79,7 +88,13 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     } else {
       // if can attend this event more than once and user has attended before
-      await users.updateOne({ email: event.body.qr }, { $inc: { [`day_of.event.${hackEvent}`]: 1 } });
+      await users.updateOne(
+        { email: event.body.qr },
+        {
+          $inc: { [`day_of.event.${hackEvent}.attend`]: 1 },
+          $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
+        }
+      );
     }
 
     // return success case
