@@ -9,3 +9,4 @@ export { default as waiver } from './waiver';
 export { default as resume } from './resume';
 export { default as resetPassword } from './reset-password';
 export { default as forgotPassword } from './forgot-password';
+export { default as points } from './points';
