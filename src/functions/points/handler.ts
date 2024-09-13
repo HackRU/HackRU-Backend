@@ -6,11 +6,27 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') })
 
-const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
+// email verification regex
+const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
+const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
+  const email = event.body.email.toLowerCase();
+  
   try {
+    // check if email is valid. (Explicit per Ethan's /points writeup)
+    if (!emailRegex.test(email)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Invalid email format',
+        }),
+      };
+    }
+    
+
     // check token
-    const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.email);
+    const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
     if (!isValidToken) {
       return {
         statusCode: 401,
@@ -30,7 +46,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
 
     // Make sure user exists
-    const user = await users.findOne({ email: event.body.email });
+    const user = await users.findOne({ email: email });
     if (!user) {
       return {
         statusCode: 404,
@@ -43,6 +59,8 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
 
     // TODO: Find user's points in "pointsCollection"
+
+    // TODO: Validate if user's points exist
 
     // TODO: Return user's points data
     return {};
