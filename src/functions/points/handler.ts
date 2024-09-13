@@ -1,4 +1,4 @@
-import type { ValidatedEventAPIGatewayProxyEvent } from "@libs/api-gateway";
+import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { MongoDB, validateToken } from "../../util";
@@ -62,7 +62,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // TODO: Validate if user's points exist
 
-    // TODO: Return user's points data
+    // TODO: Return user's points data with stat code 200
     return {};
   
   } catch (error) {
@@ -78,4 +78,4 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   }
 };
 
-export const main = middyfy(points)
+export const main = middyfy(points);
