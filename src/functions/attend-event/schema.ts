@@ -6,6 +6,8 @@ export default {
     qr: { type: 'string', format: 'email' },
     event: { type: 'string' },
     again: { type: 'boolean', default: true },
+    points: { type: 'number' },
+    limit: { type: 'number' },
   },
   required: ['auth_email', 'auth_token', 'qr', 'event'],
 } as const;
