@@ -14,12 +14,6 @@ const leaderboard: APIGatewayProxyHandler = async () => {
     const cursor = points.find().sort({ total_points: -1 }).limit(20);
     const topPlayers = await cursor.toArray();
 
-    if (topPlayers.length === 0) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({ message: 'No players found' }),
-      };
-    }
     return {
       statusCode: 200,
       body: JSON.stringify(topPlayers),
