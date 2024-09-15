@@ -3,7 +3,6 @@ export default {
   properties: {
     email: { type: 'string', format: 'email' },
     password: { type: 'string' },
-    link: { type: 'string' },
     github: { type: 'string' },
     major: { type: 'string' },
     short_answer: { type: 'string' },
@@ -12,7 +11,7 @@ export default {
     last_name: { type: 'string' },
     dietary_restrictions: { type: 'string' },
     special_needs: { type: 'string' },
-    date_of_birth: { type: 'string' },
+    age: { type: 'string' },
     school: { type: 'string' },
     grad_year: { type: 'string' },
     gender: { type: 'string' },
