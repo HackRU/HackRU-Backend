@@ -148,7 +148,6 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
           [
             'email',
             'password',
-            'link',
             'github',
             'major',
             'short_answer',
@@ -157,7 +156,6 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
             'last_name',
             'dietary_restrictions',
             'special_needs',
-            'date_of_birth',
             'school',
             'grad_year',
             'gender',
