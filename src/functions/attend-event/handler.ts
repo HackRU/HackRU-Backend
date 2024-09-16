@@ -103,9 +103,9 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       if (!userPoints) await points.insertOne({ user_email: event.body.qr, balance: 0, total_points: 0 });
 
       if (event.body.limit && attendEvent.day_of?.event?.[hackEvent]?.attend <= event.body.limit) {
-        if (event.body.points > 0)
+        if (event.body.points < 0)
           await points.updateOne({ user_email: event.body.qr }, { $inc: { balance: event.body.points } });
-        else if (event.body.points < 0) {
+        else if (event.body.points > 0) {
           await points.updateOne(
             { user_email: event.body.qr },
             { $inc: { balance: event.body.points, total_points: event.body.points } }
