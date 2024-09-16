@@ -19,7 +19,7 @@ const leaderboard: APIGatewayProxyHandler = async () => {
       body: JSON.stringify(topPlayers),
     };
   } catch (error) {
-    console.error('Error creating user', error);
+    console.error('Error loading top 20', error);
     return {
       statusCode: 500,
       body: JSON.stringify({
