@@ -41,7 +41,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     await db.connect();
     const users = db.getCollection('users');
     // TODO: Uncomment the following line after implementing the points collection
-    //const pointsCollection = db.getCollection('f24-points-syst');
+    const pointsCollection = db.getCollection('f24-points-syst');
 
     // Make sure user exists
     const user = await users.findOne({ email: email });
@@ -56,16 +56,31 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // TODO: Find user's points in "pointsCollection"
-
+    const pointUser = await users.findOne({ email: email });
+    if(!pointUser) {
+      const newPointUser = {
+        email: email,
+        balance: 0,
+        total_points: 0
+      };
+      await pointsCollection.insertOne(newPointUser);
+      return {
+        statusCode: 200,
+        body: JSON.stringify({
+          statusCode: 200,
+          message: 'Retrieved user points',
+          points: newPointUser
+        }),
+      }
+    }
     // TODO: Validate if user's points exist
 
     // TODO: Return user's points data with stat code 200
     return {
-      // temporary response for test
-      // TODO: Replace this with actual user points data
       statusCode: 200,
       body: JSON.stringify({
-        message: 'Points retrieval not yet implemented',
+        message: 'Retrieved user points',
+        points: pointUser
       }),
     };
   } catch (error) {
