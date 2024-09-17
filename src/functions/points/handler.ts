@@ -57,11 +57,11 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // TODO: Find user's points in "pointsCollection"
     const pointUser = await users.findOne({ email: email });
-    if(!pointUser) {
+    if (!pointUser) {
       const newPointUser = {
         email: email,
         balance: 0,
-        total_points: 0
+        total_points: 0,
       };
       await pointsCollection.insertOne(newPointUser);
       return {
@@ -69,9 +69,9 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         body: JSON.stringify({
           statusCode: 200,
           message: 'Retrieved user points',
-          points: newPointUser
+          points: newPointUser,
         }),
-      }
+      };
     }
     // TODO: Validate if user's points exist
 
@@ -80,7 +80,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       statusCode: 200,
       body: JSON.stringify({
         message: 'Retrieved user points',
-        points: pointUser
+        points: pointUser,
       }),
     };
   } catch (error) {
