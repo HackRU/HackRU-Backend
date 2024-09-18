@@ -6,12 +6,10 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-
 const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
 
   try {
-
     // check token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
     if (!isValidToken) {
@@ -42,25 +40,26 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       };
     }
 
+    // get users points
     const pointUser = await pointsCollection.findOne({ user_email: email });
     if (!pointUser) {
-      const pointUser = {
-        email: email,
-        balance: 0,
-        total_points: 0,
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Points not found for this user.',
+        }),
       };
-      
-      await pointsCollection.insertOne(pointUser);
     }
 
     return {
       statusCode: 200,
       body: JSON.stringify({
+        statusCode: 200,
         balance: pointUser.balance,
         total_points: pointUser.total_points,
       }),
     };
-    
   } catch (error) {
     return {
       statusCode: 500,

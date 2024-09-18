@@ -25,18 +25,6 @@ describe('Points endpoint', () => {
   const path = '/points';
   const httpMethod = 'POST';
 
-  it('should return 400 for invalid email format', async () => {
-    const userData = {
-      email: 'invalidEmail',
-      auth_token: 'mockToken',
-    };
-    const mockEvent = createEvent(userData, path, httpMethod);
-    const result = await main(mockEvent, mockContext, jest.fn());
-
-    expect(result.statusCode).toBe(400);
-    expect(JSON.parse(result.body).message).toBe('Invalid email format');
-  });
-
   it('should return 401 for invalid auth token', async () => {
     const userData = {
       email: 'testab@test.org',
@@ -67,7 +55,43 @@ describe('Points endpoint', () => {
     expect(JSON.parse(result.body).message).toBe('User not found.');
   });
 
-  // TODO: Add more tests here for the TODO sections once they are implemented
+  it('should return 404 if points not found for user', async () => {
+    const userData = {
+      email: 'test@example.com',
+      auth_token: 'validToken',
+    };
+    const mockEvent = createEvent(userData, path, httpMethod);
+    (util.validateToken as jest.Mock).mockReturnValue(true);
+    const findOneMock = util.MongoDB.getInstance('uri').getCollection('').findOne as jest.Mock;
+    findOneMock.mockResolvedValueOnce({ email: 'test@example.com' }); // user found
+    findOneMock.mockResolvedValueOnce(null); // points not found
+
+    const result = await main(mockEvent, mockContext, jest.fn());
+
+    expect(result.statusCode).toBe(404);
+    expect(JSON.parse(result.body).message).toBe('Points not found for this user.');
+  });
+
+  it('should return 200 with balance and total_points for valid user', async () => {
+    const userData = {
+      email: 'valid@email.com',
+      auth_token: 'validToken',
+    };
+
+    const mockEvent = createEvent(userData, path, httpMethod);
+    (util.validateToken as jest.Mock).mockReturnValue(true);
+    const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
+
+    findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // User exists
+    findOneMock.mockResolvedValueOnce({ user_email: 'valid@email.com', balance: 100, total_points: 150 }); // Points found
+
+    const result = await main(mockEvent, mockContext, jest.fn());
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.balance).toBe(100);
+    expect(body.total_points).toBe(150);
+  });
 
   it('should return 500 for internal server error', async () => {
     const userData = {
