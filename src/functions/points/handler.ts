@@ -6,23 +6,11 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-// email verification regex
-const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
 
   try {
-    // check if email is valid. (Explicit per Ethan's /points writeup)
-    if (!emailRegex.test(email)) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          statusCode: 400,
-          message: 'Invalid email format',
-        }),
-      };
-    }
 
     // check token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
@@ -40,7 +28,6 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
     const users = db.getCollection('users');
-    // TODO: Uncomment the following line after implementing the points collection
     const pointsCollection = db.getCollection('f24-points-syst');
 
     // Make sure user exists
@@ -55,34 +42,25 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       };
     }
 
-    // TODO: Find user's points in "pointsCollection"
-    const pointUser = await users.findOne({ email: email });
+    const pointUser = await pointsCollection.findOne({ user_email: email });
     if (!pointUser) {
-      const newPointUser = {
+      const pointUser = {
         email: email,
         balance: 0,
         total_points: 0,
       };
-      await pointsCollection.insertOne(newPointUser);
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          statusCode: 200,
-          message: 'Retrieved user points',
-          points: newPointUser,
-        }),
-      };
+      
+      await pointsCollection.insertOne(pointUser);
     }
-    // TODO: Validate if user's points exist
 
-    // TODO: Return user's points data with stat code 200
     return {
       statusCode: 200,
       body: JSON.stringify({
-        message: 'Retrieved user points',
-        points: pointUser,
+        balance: pointUser.balance,
+        total_points: pointUser.total_points,
       }),
     };
+    
   } catch (error) {
     return {
       statusCode: 500,
