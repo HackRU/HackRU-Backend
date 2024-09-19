@@ -41,7 +41,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // get users points
-    const pointUser = await pointsCollection.findOne({ user_email: email });
+    const pointUser = await pointsCollection.findOne({ email: email });
     if (!pointUser) {
       return {
         statusCode: 404,
