@@ -99,14 +99,14 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     if (event.body.points) {
       const points = db.getCollection('f24-points-syst');
-      const userPoints = await points.findOne({ user_email: event.body.qr });
-      if (!userPoints) await points.insertOne({ user_email: event.body.qr, balance: 0, total_points: 0 });
+      const userPoints = await points.findOne({ email: event.body.qr });
+      if (!userPoints) await points.insertOne({ email: event.body.qr, balance: 0, total_points: 0 });
 
       if (event.body.points < 0)
-        await points.updateOne({ user_email: event.body.qr }, { $inc: { balance: event.body.points } });
+        await points.updateOne({ email: event.body.qr }, { $inc: { balance: event.body.points } });
       else if (event.body.points > 0) {
         await points.updateOne(
-          { user_email: event.body.qr },
+          { email: event.body.qr },
           { $inc: { balance: event.body.points, total_points: event.body.points } }
         );
       }
