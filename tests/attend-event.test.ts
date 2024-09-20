@@ -30,7 +30,7 @@ describe('Attend-Event tests', () => {
     auth_token: 'mockToken',
     qr: 'test@test.org',
     event: 'lunch',
-    again: false,
+    limit: 1,
   };
   const path = '/attend-event';
   const httpMethod = 'POST';
@@ -83,12 +83,13 @@ describe('Attend-Event tests', () => {
 
   // case 4
   it('user tries to check into an event the second time but it can only be attended once', async () => {
-    userData.again = false;
     findOneMock
       .mockReturnValueOnce({
         day_of: {
           event: {
-            lunch: 1,
+            lunch: {
+              attend: 1,
+            },
           },
         },
       })
@@ -113,7 +114,6 @@ describe('Attend-Event tests', () => {
 
   // case 5
   it('success check-in to an event', async () => {
-    userData.again = true;
     findOneMock
       .mockReturnValueOnce({
         day_of: {},
