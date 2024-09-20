@@ -11,6 +11,7 @@ import waiver from '@functions/waiver';
 import resume from '@functions/resume';
 import resetPassword from '@functions/reset-password';
 import forgotPassword from '@functions/forgot-password';
+import points from '@functions/points';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -47,6 +48,7 @@ const serverlessConfiguration: AWS = {
     discord,
     forgotPassword,
     resetPassword,
+    points,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
