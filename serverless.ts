@@ -14,7 +14,6 @@ import forgotPassword from '@functions/forgot-password';
 import leaderboard from '@functions/leaderboard';
 import points from '@functions/points';
 
-
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -52,7 +51,6 @@ const serverlessConfiguration: AWS = {
     resetPassword,
     leaderboard,
     points,
-
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
