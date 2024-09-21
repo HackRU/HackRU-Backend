@@ -11,6 +11,7 @@ import waiver from '@functions/waiver';
 import resume from '@functions/resume';
 import resetPassword from '@functions/reset-password';
 import forgotPassword from '@functions/forgot-password';
+import leaderboard from '@functions/leaderboard';
 import points from '@functions/points';
 
 import * as path from 'path';
@@ -48,6 +49,7 @@ const serverlessConfiguration: AWS = {
     discord,
     forgotPassword,
     resetPassword,
+    leaderboard,
     points,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
