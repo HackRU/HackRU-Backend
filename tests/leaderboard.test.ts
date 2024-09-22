@@ -7,18 +7,14 @@ jest.mock('../src/util', () => ({
       connect: jest.fn(),
       disconnect: jest.fn(),
       getCollection: jest.fn().mockReturnValue({
-        find: jest.fn().mockReturnValue({
-          sort: jest.fn().mockReturnValue({
-            limit: jest.fn().mockReturnValue({
-              toArray: jest.fn().mockReturnValue([
-                { name: 'Player1', total_points: 150 },
-                { name: 'Player2', total_points: 130 },
-                { name: 'Player3', total_points: 120 },
-                { name: 'Player4', total_points: 110 },
-                { name: 'Player5', total_points: 110 },
-              ]),
-            }),
-          }),
+        aggregate: jest.fn().mockReturnValue({
+          toArray: jest.fn().mockReturnValue([
+            { name: 'Player1', total_points: 150 },
+            { name: 'Player2', total_points: 130 },
+            { name: 'Player3', total_points: 120 },
+            { name: 'Player4', total_points: 110 },
+            { name: 'Player5', total_points: 110 },
+          ]),
         }),
       }),
     }),

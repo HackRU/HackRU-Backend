@@ -3,6 +3,7 @@ import { middyfy } from '@libs/lambda';
 import { MongoDB } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const leaderboard: APIGatewayProxyHandler = async () => {
@@ -11,8 +12,22 @@ const leaderboard: APIGatewayProxyHandler = async () => {
     await db.connect();
     const points = db.getCollection('f24-points-syst');
 
-    const cursor = points.find().sort({ total_points: -1 }).limit(20);
-    const topPlayers = await cursor.toArray();
+    const topPlayers = await points
+      .aggregate([
+        {
+          $project: {
+            name: 1,
+            total_points: 1,
+          },
+        },
+        {
+          $sort: { total_points: -1 },
+        },
+        {
+          $limit: 20,
+        },
+      ])
+      .toArray();
 
     return {
       statusCode: 200,
