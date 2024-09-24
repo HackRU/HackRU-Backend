@@ -13,7 +13,6 @@ import resetPassword from '@functions/reset-password';
 import forgotPassword from '@functions/forgot-password';
 import leaderboard from '@functions/leaderboard';
 import points from '@functions/points';
-
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });

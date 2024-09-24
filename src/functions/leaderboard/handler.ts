@@ -16,7 +16,8 @@ const leaderboard: APIGatewayProxyHandler = async () => {
       .aggregate([
         {
           $project: {
-            name: 1,
+            first_name: 1,
+            last_name: 1,
             total_points: 1,
           },
         },
