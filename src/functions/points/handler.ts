@@ -41,7 +41,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // get users points
-    
+
     const pointUser = await pointsCollection.findOne(
       { email: email },
       // eslint-disable-next-line @typescript-eslint/naming-convention
