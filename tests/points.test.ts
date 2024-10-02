@@ -71,7 +71,7 @@ describe('Points endpoint', () => {
     expect(result.statusCode).toBe(404);
     expect(JSON.parse(result.body).message).toBe('Points not found for this user.');
   });
-  
+
   it('should return 200 with balance, total_points, and buy_ins for valid user', async () => {
     const userData = {
       email: 'valid@email.com',
@@ -103,7 +103,6 @@ describe('Points endpoint', () => {
     ]);
   });
 
-  
   it('should return 200 with balance, total_points, and empty buy_ins array if not present', async () => {
     const userData = {
       email: 'valid@email.com',
@@ -127,7 +126,6 @@ describe('Points endpoint', () => {
     expect(body.total_points).toBe(150);
     expect(body.buy_ins).toEqual([]);
   });
-
 
   it('should return 500 for internal server error', async () => {
     const userData = {
