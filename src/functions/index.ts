@@ -11,3 +11,4 @@ export { default as resetPassword } from './reset-password';
 export { default as forgotPassword } from './forgot-password';
 export { default as leaderboard } from './leaderboard';
 export { default as points } from './points';
+export { default as updateBuyIns } from './update-buy-ins';
