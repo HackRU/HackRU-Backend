@@ -30,10 +30,12 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     const userPoints = await point_collection.findOne({ email: event.body.email });
 
     if (userPoints) {
-      if (userPoints.buy_ins.length == event.body.buy_ins.length) {
+      const userBuyInsSorted = userPoints.buy_ins.sort((a, b) => b.prize_id.localeCompare(a.prize_id));
+      const requestBuyInsSorted = event.body.buy_ins.sort((a, b) => b.prize_id.localeCompare(a.prize_id));
+      if (userBuyInsSorted.length === requestBuyInsSorted.length) {
         let points_used = 0;
-        for (let i = 0; i < event.body.buy_ins.length; i++) {
-          if (event.body.buy_ins[i].prize_id != userPoints.buy_ins[i].prize_id) {
+        for (let i = 0; i < userBuyInsSorted.length; i++) {
+          if (requestBuyInsSorted[i].prize_id !== userBuyInsSorted[i].prize_id) {
             return {
               statusCode: 400,
               body: JSON.stringify({
