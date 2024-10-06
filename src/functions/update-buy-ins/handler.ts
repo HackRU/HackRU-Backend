@@ -26,14 +26,17 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     // connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const point_collection = db.getCollection('f24-points-syst');
-    const userPoints = await point_collection.findOne({ email: event.body.email });
+    const pointCollection = db.getCollection('f24-points-syst');
+    const userPoints = await pointCollection.findOne({ email: event.body.email });
 
     if (userPoints) {
+      //sort the request buy_ins array and the buy_ins array from the db
       const userBuyInsSorted = userPoints.buy_ins.sort((a, b) => b.prize_id.localeCompare(a.prize_id));
       const requestBuyInsSorted = event.body.buy_ins.sort((a, b) => b.prize_id.localeCompare(a.prize_id));
+      //check if the length of both arrays are equal
       if (userBuyInsSorted.length === requestBuyInsSorted.length) {
-        let points_used = 0;
+        let pointsUsed = 0;
+        //compare the prize_ids from the request and the mongo object while also totaling the point_distribution in the request
         for (let i = 0; i < userBuyInsSorted.length; i++) {
           if (requestBuyInsSorted[i].prize_id !== userBuyInsSorted[i].prize_id) {
             return {
@@ -44,9 +47,10 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
               }),
             };
           }
-          points_used += event.body.buy_ins[i].buy_in;
+          pointsUsed += event.body.buy_ins[i].buy_in;
         }
-        if (points_used > userPoints.total_points) {
+        //check that the points used are within the total_points
+        if (pointsUsed > userPoints.total_points) {
           return {
             statusCode: 403,
             body: JSON.stringify({
@@ -55,8 +59,8 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
             }),
           };
         }
-
-        await point_collection.updateOne({ email: event.body.email }, { $set: { buy_ins: event.body.buy_ins } });
+        //update the buy_ins array
+        await pointCollection.updateOne({ email: event.body.email }, { $set: { buy_ins: event.body.buy_ins } });
         return {
           statusCode: 200,
           body: JSON.stringify({
