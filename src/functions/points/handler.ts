@@ -59,7 +59,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // Check if esists
-    const buy_ins = Array.isArray(pointUser.buy_ins) ? pointUser.buy_ins : [];
+    const buyIns = Array.isArray(pointUser.buy_ins) ? pointUser.buy_ins : [];
 
     return {
       statusCode: 200,
@@ -67,7 +67,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         statusCode: 200,
         balance: pointUser.balance,
         total_points: pointUser.total_points,
-        buy_ins: buy_ins,
+        buy_ins: buyIns,
       }),
     };
   } catch (error) {
