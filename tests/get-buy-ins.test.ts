@@ -1,6 +1,5 @@
 import { main } from '../src/functions/get-buy-ins/handler';
 import { createEvent, mockContext } from './helper';
-import * as util from '../src/util';
 
 jest.mock('../src/util', () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -10,7 +9,10 @@ jest.mock('../src/util', () => ({
       disconnect: jest.fn(),
       getCollection: jest.fn().mockReturnValue({
         findOne: jest.fn(),
-        updateOne: jest.fn(),
+        aggregate: jest.fn().mockReturnValue({
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          toArray: jest.fn().mockReturnValue([{ _id: 'prizeA', sum: 30 }]),
+        }),
       }),
     }),
   },
@@ -25,7 +27,6 @@ describe('get-buy-ins tests', () => {
   const path = '/get-buy-ins';
   const httpMethod = 'POST';
 
-  const aggregateMock = util.MongoDB.getInstance('uri').getCollection('f24-points-syst').aggregate as jest.Mock;
   const mockCallback = jest.fn();
 
   it('auth token is not valid', async () => {
@@ -39,7 +40,7 @@ describe('get-buy-ins tests', () => {
     const result = await main(mockEvent, mockContext, mockCallback);
 
     expect(result.statusCode).toBe(401);
-    expect(JSON.parse(result.body).message).toBe('Unauthorized.');
+    expect(JSON.parse(result.body).message).toBe('Unauthorized');
   });
 
   it('success', async () => {
@@ -49,11 +50,6 @@ describe('get-buy-ins tests', () => {
     };
 
     const mockEvent = createEvent(userData, path, httpMethod);
-
-    aggregateMock.mockResolvedValueOnce([
-      { buy_ins: { prize_id: 'prizeA', buy_in: 10 } },
-      { buy_ins: { prize_id: 'prizeA', buy_in: 20 } },
-    ]);
 
     const result = await main(mockEvent, mockContext, jest.fn());
 
