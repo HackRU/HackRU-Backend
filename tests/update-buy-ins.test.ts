@@ -29,7 +29,7 @@ describe('Update-Buy-Ins tests', () => {
       { prize_id: 'prize2', buy_in: 20 },
     ],
   };
-  
+
   const path = '/update-buy-ins';
   const httpMethod = 'POST';
 
@@ -56,7 +56,7 @@ describe('Update-Buy-Ins tests', () => {
     expect(result.statusCode).toBe(404);
     expect(JSON.parse(result.body).message).toBe('User point balance information not found');
   });
-  
+
   // case 3
   it('prize IDs do not match', async () => {
     findOneMock.mockReturnValueOnce({
@@ -83,7 +83,7 @@ describe('Update-Buy-Ins tests', () => {
       total_points: 15,
       buy_ins: [
         { prize_id: 'prize1', buy_in: 5 },
-        { prize_id: 'prize2', buy_in: 10 },
+        { prize_id: 'prize2', buy_in: 11 },
       ],
     });
 
