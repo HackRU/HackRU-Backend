@@ -83,7 +83,7 @@ describe('Update-Buy-Ins tests', () => {
       total_points: 15,
       buy_ins: [
         { prize_id: 'prize1', buy_in: 5 },
-        { prize_id: 'prize2', buy_in: 10 },
+        { prize_id: 'prize2', buy_in: 11 },
       ],
     });
 
