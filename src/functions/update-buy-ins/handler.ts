@@ -68,15 +68,15 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
             message: 'Updated user point balance successfully',
           }),
         };
-      } else {
-        return {
+      } 
+    } else {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
           statusCode: 404,
-          body: JSON.stringify({
-            statusCode: 404,
-            message: 'User point balance information not found',
-          }),
-        };
-      }
+          message: 'User point balance information not found',
+        }),
+      };
     }
   } catch (error) {
     console.error('Error updating', error);
