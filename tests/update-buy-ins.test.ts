@@ -1,5 +1,6 @@
 import { main } from '../src/functions/update-buy-ins/handler';
 import { createEvent, mockContext } from './helper';
+import * as util from '../src/util';
 
 jest.mock('../src/util', () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -29,9 +30,10 @@ describe('Update-Buy-Ins tests', () => {
   const path = '/update-buy-ins';
   const httpMethod = 'POST';
 
+  const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
   const mockCallback = jest.fn();
 
-  // case 1: auth token is not valid
+  // case 1
   it('auth token is not valid', async () => {
     const mockEvent = createEvent(userData, path, httpMethod);
 
@@ -40,5 +42,17 @@ describe('Update-Buy-Ins tests', () => {
     expect(result.statusCode).toBe(401);
     expect(JSON.parse(result.body).message).toBe('Unauthorized');
   });
+
+  // case 2
+  it('user not found', async () => {
+    findOneMock.mockReturnValueOnce(null);
+    const mockEvent = createEvent(userData, path, httpMethod);
+
+    const result = await main(mockEvent, mockContext, mockCallback);
+
+    expect(result.statusCode).toBe(404);
+    expect(JSON.parse(result.body).message).toBe('User point balance information not found');
+  });
+  
 
 });
