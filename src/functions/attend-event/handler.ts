@@ -127,7 +127,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       body: JSON.stringify({
         statusCode: 200,
         message: 'user successfully checked into event',
-        attendance: attendEvent.day_of.event[hackEvent].attend + 1,
+        attendance: attendEvent.day_of.event?.[hackEvent]?.attend ? attendEvent.day_of.event[hackEvent].attend + 1 : 1,
       }),
     };
   } catch (error) {
