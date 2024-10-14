@@ -72,18 +72,24 @@ describe('Points endpoint', () => {
     expect(JSON.parse(result.body).message).toBe('Points not found for this user.');
   });
 
-  it('should return 200 with balance and total_points for valid user', async () => {
+  it('should return 200 with balance, total_points, and buy_ins for valid user', async () => {
     const userData = {
       email: 'valid@email.com',
       auth_token: 'validToken',
     };
-
     const mockEvent = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
-
     findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // User exists
-    findOneMock.mockResolvedValueOnce({ user_email: 'valid@email.com', balance: 100, total_points: 150 }); // Points found
+    findOneMock.mockResolvedValueOnce({
+      email: 'valid@email.com',
+      balance: 100,
+      total_points: 150,
+      buy_ins: [
+        { prize_id: 'prizeA', buy_in: 50 },
+        { prize_id: 'prizeB', buy_in: 30 },
+      ],
+    }); // Points and buy_ins found
 
     const result = await main(mockEvent, mockContext, jest.fn());
 
@@ -91,6 +97,34 @@ describe('Points endpoint', () => {
     const body = JSON.parse(result.body);
     expect(body.balance).toBe(100);
     expect(body.total_points).toBe(150);
+    expect(body.buy_ins).toEqual([
+      { prize_id: 'prizeA', buy_in: 50 },
+      { prize_id: 'prizeB', buy_in: 30 },
+    ]);
+  });
+
+  it('should return 200 with balance, total_points, and empty buy_ins array if not present', async () => {
+    const userData = {
+      email: 'valid@email.com',
+      auth_token: 'validToken',
+    };
+    const mockEvent = createEvent(userData, path, httpMethod);
+    (util.validateToken as jest.Mock).mockReturnValue(true);
+    const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
+    findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // User exists
+    findOneMock.mockResolvedValueOnce({
+      email: 'valid@email.com',
+      balance: 100,
+      total_points: 150,
+    }); // Points found, but no buy_ins
+
+    const result = await main(mockEvent, mockContext, jest.fn());
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.balance).toBe(100);
+    expect(body.total_points).toBe(150);
+    expect(body.buy_ins).toEqual([]);
   });
 
   it('should return 500 for internal server error', async () => {
