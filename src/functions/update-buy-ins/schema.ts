@@ -2,7 +2,7 @@ export default {
   type: 'object',
   properties: {
     email: { type: 'string', format: 'email' },
-    auth_token: { type: 'string ' },
+    auth_token: { type: 'string' },
     buy_ins: {
       type: 'array',
       items: {
