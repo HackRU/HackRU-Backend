@@ -50,11 +50,10 @@ describe('get-buy-ins tests', () => {
     };
 
     const mockEvent = createEvent(userData, path, httpMethod);
-
     const result = await main(mockEvent, mockContext, jest.fn());
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
-    expect(body.prizeA).toBe(30);
+    expect(body.buyIns.prizeA).toBe(30);
   });
 });
