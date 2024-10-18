@@ -29,7 +29,7 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     const pointCollection = db.getCollection('f24-points-syst');
     const userPoints = await pointCollection.findOne({ email: event.body.email });
 
-    if (!userPoints) {
+    if (!userPoints || !userPoints.total_points || !userPoints.balance) {
       return {
         statusCode: 404,
         body: JSON.stringify({
