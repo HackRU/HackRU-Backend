@@ -62,6 +62,7 @@ describe('Update-Buy-Ins tests', () => {
     findOneMock.mockReturnValueOnce({
       email: userData.email,
       total_points: 100,
+      balance: 2,
       buy_ins: [
         { prize_id: 'prize2', buy_in: 10 },
         { prize_id: 'prize2', buy_in: 20 },
@@ -81,6 +82,7 @@ describe('Update-Buy-Ins tests', () => {
     findOneMock.mockReturnValueOnce({
       email: userData.email,
       total_points: 15,
+      balance: 2,
       buy_ins: [
         { prize_id: 'prize1', buy_in: 5 },
         { prize_id: 'prize2', buy_in: 11 },
@@ -100,6 +102,7 @@ describe('Update-Buy-Ins tests', () => {
     findOneMock.mockReturnValueOnce({
       email: userData.email,
       total_points: 30,
+      balance: 2,
       buy_ins: [
         { prize_id: 'prize1', buy_in: 10 },
         { prize_id: 'prize2', buy_in: 20 },
