@@ -111,7 +111,19 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         });
       }
 
+      if (event.body.points < 0 && userPoints.balance + event.body.points < 0) {
+        return {
+          statusCode: 409,
+          body: JSON.stringify({
+            statusCode: 409,
+            message: 'User does not have enough points to check into event.',
+            balance: userPoints.balance,
+          }),
+        };
+      }
+
       if (event.body.points < 0)
+        // note: the operation is $inc but since points is negative, it will still subtract
         await points.updateOne({ email: event.body.qr }, { $inc: { balance: event.body.points } });
       else if (event.body.points > 0) {
         await points.updateOne(
