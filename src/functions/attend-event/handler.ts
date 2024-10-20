@@ -77,13 +77,14 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
           $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
         }
       );
-    } else if (event.body.again === false) {
-      // if can only attend this event once and user has already attended
+    } else if (attendEvent.day_of.event[hackEvent].attend >= event.body.limit) {
+      // if attended this event the max times allowed as per limit
       return {
         statusCode: 409,
         body: JSON.stringify({
           statusCode: 409,
           message: 'User already checked into event.',
+          attendance: attendEvent.day_of.event[hackEvent].attend,
         }),
       };
     } else {
@@ -97,12 +98,48 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       );
     }
 
+    if (event.body.points) {
+      const points = db.getCollection('f24-points-syst');
+      const userPoints = await points.findOne({ email: event.body.qr });
+      if (!userPoints) {
+        await points.insertOne({
+          email: event.body.qr,
+          first_name: attendEvent.first_name,
+          last_name: attendEvent.last_name,
+          balance: 0,
+          total_points: 0,
+        });
+      }
+
+      if (event.body.points < 0 && userPoints.balance + event.body.points < 0) {
+        return {
+          statusCode: 409,
+          body: JSON.stringify({
+            statusCode: 409,
+            message: 'User does not have enough points to check into event.',
+            balance: userPoints.balance,
+          }),
+        };
+      }
+
+      if (event.body.points < 0)
+        // note: the operation is $inc but since points is negative, it will still subtract
+        await points.updateOne({ email: event.body.qr }, { $inc: { balance: event.body.points } });
+      else if (event.body.points > 0) {
+        await points.updateOne(
+          { email: event.body.qr },
+          { $inc: { balance: event.body.points, total_points: event.body.points } }
+        );
+      }
+    }
+
     // return success case
     return {
       statusCode: 200,
       body: JSON.stringify({
         statusCode: 200,
         message: 'user successfully checked into event',
+        attendance: attendEvent.day_of.event?.[hackEvent]?.attend ? attendEvent.day_of.event[hackEvent].attend + 1 : 1,
       }),
     };
   } catch (error) {

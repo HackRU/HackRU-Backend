@@ -9,3 +9,7 @@ export { default as waiver } from './waiver';
 export { default as resume } from './resume';
 export { default as resetPassword } from './reset-password';
 export { default as forgotPassword } from './forgot-password';
+export { default as leaderboard } from './leaderboard';
+export { default as points } from './points';
+export { default as updateBuyIns } from './update-buy-ins';
+export { default as getBuyIns } from './get-buy-ins';
