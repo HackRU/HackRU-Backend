@@ -10,6 +10,9 @@ import * as dotenv from 'dotenv';
 import { Document, WithId } from 'mongodb';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
+const CHECK_IN_START_DATE = new Date('2024-10-26T10:30:00');
+const CHECK_IN_CUT_OFF = new Date(CHECK_IN_START_DATE.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days after check-in start
+
 const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   // if user email = auth email, you're updating auth user
   // need to follow FSM for registration status
@@ -67,8 +70,16 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // validate updates
-    const isValidUpdates = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
-    if (!isValidUpdates) {
+    const validationResult = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
+    if (typeof validationResult === 'string') {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: validationResult,
+        }),
+      };
+    } else if (!validationResult) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -135,13 +146,29 @@ function isValidRegistrationStatusUpdate(current: string, goal: string): boolean
 
 // return true or false whether the proposed update is valid or not
 
-function validateUpdates(updates: Updates, registrationStatus?: string, user?: WithId<Document>): boolean {
+function validateUpdates(updates: Updates, registrationStatus?: string, user?: WithId<Document>): boolean | string {
   const setUpdates = updates.$set;
   if (setUpdates) {
     if ('registration_status' in setUpdates) {
+      const currentDate = new Date();
       const goalStatus = setUpdates.registration_status as string;
-      if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus)) return false;
-      //validates for unregistered users going to registered status
+
+      if (goalStatus === 'checked_in') {
+        if (currentDate > CHECK_IN_CUT_OFF)
+          return `Registration is closed. The cutoff date was ${CHECK_IN_CUT_OFF.toLocaleString()}.`;
+      }
+
+      const atleastRegistered = ['confirmed', 'waitlist', 'registered', 'coming'].includes(
+        registrationStatus || 'unregistered'
+      );
+      if (goalStatus === 'checked_in' && atleastRegistered) {
+        if (currentDate >= CHECK_IN_START_DATE || registrationStatus === 'confirmed') return true;
+        else
+          return `Current status of this user is ${registrationStatus}. Check-in will be available after ${CHECK_IN_START_DATE.toLocaleString()}.`;
+      }
+
+      if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus))
+        return `Invalid registration status update from ${registrationStatus} to ${goalStatus}`;
 
       if ((registrationStatus === undefined || registrationStatus == 'unregistered') && goalStatus === 'registered') {
         if (
@@ -164,11 +191,11 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
             'phone_number',
           ].some((registrationField) => !user[registrationField] || user[registrationField] === '')
         )
-          return false;
+          return 'Missing required fields';
       } else return true;
     }
     if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates))
-      return false;
+      return 'Cannot update locked fields';
 
     return true;
   }

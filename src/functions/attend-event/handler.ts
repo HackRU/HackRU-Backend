@@ -41,6 +41,16 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     }
 
+    if (attendEvent.registration_status != 'checked_in') {
+      return {
+        statusCode: 409,
+        body: JSON.stringify({
+          statusCode: 409,
+          message: 'User has not checked in. Current status is ' + attendEvent.registration_status,
+        }),
+      };
+    }
+
     // ensure that only directors/organizers (auth_email) can call this route
     const authUser = await users.findOne({ email: event.body.auth_email });
     if (!authUser) {
