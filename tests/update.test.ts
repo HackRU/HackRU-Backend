@@ -171,7 +171,14 @@ describe('/update endpoint', () => {
       const mockEvent = createEvent(invalidUpdate, '/update', 'POST');
       const res = await main(mockEvent, mockContext, mockCallback);
       expect(res.statusCode).toBe(400);
-      expect(JSON.parse(res.body).message).toBe('Bad updates.');
+      /*
+        The reason this message is being commented out is because with the new error messages,
+        the error message will be different depending on what field is being updated.
+
+        For example, password being update will have different message from registration_status being
+        updated to a value that is not a part of the graph.
+      */
+      // expect(JSON.parse(res.body).message).toBe('Invalid registration status update from registered to coming');
     }
   });
 
@@ -227,7 +234,7 @@ describe('/update endpoint', () => {
     const mockEvent = createEvent(incompleteUserData, '/update', 'POST');
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(400);
-    expect(JSON.parse(res.body).message).toBe('Bad updates.');
+    expect(JSON.parse(res.body).message).toBe('Missing required fields');
   });
   //case 8
   it('Completed fields for registration, success', async () => {

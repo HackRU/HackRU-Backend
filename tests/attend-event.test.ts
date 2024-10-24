@@ -92,6 +92,7 @@ describe('Attend-Event tests', () => {
             },
           },
         },
+        registration_status: 'checked_in',
       })
       .mockReturnValueOnce({
         role: {
@@ -117,6 +118,7 @@ describe('Attend-Event tests', () => {
     findOneMock
       .mockReturnValueOnce({
         day_of: {},
+        registration_status: 'checked_in',
       })
       .mockReturnValueOnce({
         role: {
@@ -134,5 +136,29 @@ describe('Attend-Event tests', () => {
 
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body).message).toBe('user successfully checked into event');
+  });
+
+  it('user tries to attend event when they are not checked_in', async () => {
+    findOneMock
+      .mockReturnValueOnce({
+        day_of: {},
+        registration_status: 'registered',
+      })
+      .mockReturnValueOnce({
+        role: {
+          hacker: false,
+          volunteer: true,
+          judge: false,
+          sponsor: false,
+          mentor: false,
+          organizer: false,
+          director: true,
+        },
+      });
+    const mockEvent = createEvent(userData, path, httpMethod);
+    const result = await main(mockEvent, mockContext, mockCallback);
+
+    expect(result.statusCode).toBe(409);
+    expect(JSON.parse(result.body).message).toBe('User has not checked in. Current status is registered');
   });
 });
