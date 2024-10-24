@@ -62,6 +62,16 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     }
 
+    if (attendEvent.registration_status != 'checked_in') {
+      return {
+        statusCode: 409,
+        body: JSON.stringify({
+          statusCode: 409,
+          message: 'User has not checked in. Current status is ' + attendEvent.registration_status,
+        }),
+      };
+    }
+
     // conditions to check a user into events during hackathon
     const hackEvent = event.body.event;
 
