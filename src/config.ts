@@ -1,2 +1,2 @@
-export const registrationStart = '07/02/24';
-export const registrationEnd = '10/27/24';
+export const registrationStart = '01/01/25';
+export const registrationEnd = '01/28/25';
