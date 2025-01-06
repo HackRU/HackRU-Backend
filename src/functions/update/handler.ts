@@ -8,6 +8,8 @@ import { MongoDB, validateToken, ensureRoles } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { Document, WithId } from 'mongodb';
+// eslint-disable-next-line @typescript-eslint/naming-convention
+import AWS from 'aws-sdk';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const CHECK_IN_START_DATE = new Date('2024-10-26T10:30:00');
@@ -98,6 +100,24 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     if (authUser.role['director'] || authUser.role['organizer'])
       await users.updateOne({ email: event.body.user_email }, event.body.updates);
     else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, event.body.updates);
+
+    // send to sns if registration status is updated
+    if (event.body.updates?.$set?.registration_status) {
+      const emailPayload = {
+        email: event.body.user_email,
+        first_name: updatedUser.first_name,
+        last_name: updatedUser.last_name,
+        registration_status: event.body.updates.$set.registration_status || 'error',
+      };
+      // publish to sns topic
+      const sns = new AWS.SNS();
+      await sns
+        .publish({
+          TopicArn: 'arn:aws:sns:us-east-1:316662450651:email-registration-status',
+          Message: JSON.stringify(emailPayload),
+        })
+        .promise();
+    }
 
     return {
       statusCode: 200,
