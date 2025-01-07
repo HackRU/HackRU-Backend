@@ -113,7 +113,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       const sns = new AWS.SNS();
       await sns
         .publish({
-          TopicArn: 'arn:aws:sns:us-east-1:316662450651:email-registration-status',
+          TopicArn: process.env.SNS_TOPIC_ARN,
           Message: JSON.stringify(emailPayload),
         })
         .promise();
