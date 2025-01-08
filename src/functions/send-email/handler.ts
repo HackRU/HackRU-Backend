@@ -79,7 +79,7 @@ export const handler = async (event: SNSEvent) => {
 
       // Email construction
       const params = {
-        FromEmailAddress: process.env.SENDER_EMAIL,
+        FromEmailAddress: 'no-reply@hackru.org',
         Destination: {
           ToAddresses: [email],
         },
