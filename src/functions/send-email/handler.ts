@@ -5,9 +5,9 @@ const ses = new SESv2Client({});
 
 interface EmailMessage {
   email: string;
-  firstName: string;
-  lastName: string;
-  registrationStatus: string;
+  first_name: string;
+  last_name: string;
+  registration_status: string;
 }
 
 // Email templates for the specific registration statuses
@@ -66,13 +66,14 @@ export const handler = async (event: SNSEvent) => {
   try {
     for (const record of event.Records) {
       const message: EmailMessage = JSON.parse(record.Sns.Message);
-      const { email, firstName, registrationStatus } = message;
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      const { email, first_name, registration_status } = message;
 
-      const template = EMAIL_TEMPLATES[registrationStatus as keyof typeof EMAIL_TEMPLATES];
+      const template = EMAIL_TEMPLATES[registration_status as keyof typeof EMAIL_TEMPLATES];
 
       // status not in list of statuses yet: registered, confirmation, rejected, waitlisted
       if (!template) {
-        console.log(`No email template for status: ${registrationStatus}`);
+        console.log(`No email template for status: ${registration_status}`);
         continue;
       }
 
@@ -90,7 +91,7 @@ export const handler = async (event: SNSEvent) => {
             },
             Body: {
               Text: {
-                Data: template.body(firstName),
+                Data: template.body(first_name),
                 Charset: 'UTF-8',
               },
             },
@@ -101,7 +102,7 @@ export const handler = async (event: SNSEvent) => {
       // Sending Email
       const command = new SendEmailCommand(params);
       await ses.send(command);
-      console.log(`Email sent to ${email} for status: ${registrationStatus}`);
+      console.log(`Email sent to ${email} for status: ${registration_status}`);
     }
 
     // Success
