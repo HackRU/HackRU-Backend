@@ -1,12 +1,12 @@
-import { SESv2Client, SendEmailCommand, Status } from "@aws-sdk/client-sesv2";
-import type { SNSEvent } from "aws-lambda";
+import { SESv2Client, SendEmailCommand, Status } from '@aws-sdk/client-sesv2';
+import type { SNSEvent } from 'aws-lambda';
 
 const ses = new SESv2Client({});
 
-interface EmailMessage{ 
+interface EmailMessage {
   email: string;
   first_name: string;
-  last_name: string
+  last_name: string;
   registration_status: string;
 }
 
@@ -21,10 +21,10 @@ Thank you for registering for HackRU! Your application has been received and is 
 We'll notify you once a decision has been made regarding your application.
 
 Best regards,
-The HackRU Team`
+The HackRU Team`,
   },
   confirmation: {
-    subject: 'Congratulations! You\'ve Been Accepted to HackRU!',
+    subject: "Congratulations! You've Been Accepted to HackRU!",
     body: (firstName: string) => `Dear ${firstName},
 
 Great news! Your application for HackRU has been accepted! 
@@ -34,7 +34,7 @@ Please log in to your HackRU dashboard to confirm whether you will be attending.
 We look forward to seeing you at HackRU!
 
 Best regards,
-The HackRU Team`
+The HackRU Team`,
   },
   rejected: {
     subject: 'HackRU Application Status Update',
@@ -47,7 +47,7 @@ After careful consideration, we regret to inform you that we are unable to offer
 We encourage you to apply again for our future events!
 
 Best regards,
-The HackRU Team`
+The HackRU Team`,
   },
   waitlist: {
     subject: 'HackRU Application Status - Waitlist',
@@ -58,8 +58,8 @@ Thank you for your application to HackRU. Due to the high volume of applications
 We'll contact you if a spot becomes available. In the meantime, no further action is required from you.
 
 Best regards,
-The HackRU Team`
-  }
+The HackRU Team`,
+  },
 };
 
 export const handler = async (event: SNSEvent) => {
@@ -69,10 +69,10 @@ export const handler = async (event: SNSEvent) => {
       const { email, first_name, registration_status } = message;
 
       const template = EMAIL_TEMPLATES[registration_status as keyof typeof EMAIL_TEMPLATES];
-      
+
       // status not in list of statuses yet: registered, confirmation, rejected, waitlisted
       if (!template) {
-        console.log(`No email template for status: ${registration_status}`)
+        console.log(`No email template for status: ${registration_status}`);
         continue;
       }
 
@@ -92,10 +92,10 @@ export const handler = async (event: SNSEvent) => {
               Text: {
                 Data: template.body(first_name),
                 Charset: 'UTF-8',
-              }
-            }
-          }
-        }
+              },
+            },
+          },
+        },
       };
 
       // Sending Email
@@ -107,16 +107,15 @@ export const handler = async (event: SNSEvent) => {
     // Success
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Emails processed successfully' })
+      body: JSON.stringify({ message: 'Emails processed successfully' }),
     };
-
   } catch (error) {
     console.error('Error sending email:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({
         message: 'Error processing emails',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       }),
     };
   }

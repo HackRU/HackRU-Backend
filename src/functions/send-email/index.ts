@@ -9,8 +9,8 @@ export default {
     {
       sns: {
         arn: process.env.SNS_TOPIC_ARN,
-        topicName: 'registration-status-update'
-      }
-    }
-  ]
+        topicName: 'registration-status-update',
+      },
+    },
+  ],
 };

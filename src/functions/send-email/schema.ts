@@ -11,15 +11,15 @@ export default {
             properties: {
               Message: {
                 type: 'string',
-                description: 'Contains a JSON string with email, first_name, last_name, and registration_status'
-              }
+                description: 'Contains a JSON string with email, first_name, last_name, and registration_status',
+              },
             },
-            required: ['Message']
-          }
+            required: ['Message'],
+          },
         },
-        required: ['Sns']
-      }
-    }
+        required: ['Sns'],
+      },
+    },
   },
-  required: ['Records']
+  required: ['Records'],
 } as const;
