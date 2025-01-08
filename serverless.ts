@@ -15,6 +15,7 @@ import leaderboard from '@functions/leaderboard';
 import points from '@functions/points';
 import updateBuyIns from '@functions/update-buy-ins';
 import getBuyIns from '@functions/get-buy-ins';
+import sendEmail from '@functions/send-email';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -37,6 +38,18 @@ const serverlessConfiguration: AWS = {
       DOTENV_KEY: process.env.DOTENV_KEY,
       SNS_TOPIC_ARN: process.env.SNS_TOPIC_ARN,
     },
+    iam: {
+      role: {
+        statements: [{
+          Effect: 'Allow',
+          Action: [
+            'ses:SendEmail',
+            'ses:SendRawEmail'
+          ],
+          Resource: '*'
+        }]
+      }
+    }
   },
   // import the function via paths
   functions: {
@@ -55,6 +68,7 @@ const serverlessConfiguration: AWS = {
     points,
     updateBuyIns,
     getBuyIns,
+    sendEmail,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
