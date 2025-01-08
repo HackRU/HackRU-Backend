@@ -40,16 +40,15 @@ const serverlessConfiguration: AWS = {
     },
     iam: {
       role: {
-        statements: [{
-          Effect: 'Allow',
-          Action: [
-            'ses:SendEmail',
-            'ses:SendRawEmail'
-          ],
-          Resource: '*'
-        }]
-      }
-    }
+        statements: [
+          {
+            Effect: 'Allow',
+            Action: ['ses:SendEmail', 'ses:SendRawEmail'],
+            Resource: '*',
+          },
+        ],
+      },
+    },
   },
   // import the function via paths
   functions: {

@@ -1,13 +1,13 @@
-import { SESv2Client, SendEmailCommand, Status } from '@aws-sdk/client-sesv2';
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 import type { SNSEvent } from 'aws-lambda';
 
 const ses = new SESv2Client({});
 
 interface EmailMessage {
   email: string;
-  first_name: string;
-  last_name: string;
-  registration_status: string;
+  firstName: string;
+  lastName: string;
+  registrationStatus: string;
 }
 
 // Email templates for the specific registration statuses
@@ -66,13 +66,13 @@ export const handler = async (event: SNSEvent) => {
   try {
     for (const record of event.Records) {
       const message: EmailMessage = JSON.parse(record.Sns.Message);
-      const { email, first_name, registration_status } = message;
+      const { email, firstName, registrationStatus } = message;
 
-      const template = EMAIL_TEMPLATES[registration_status as keyof typeof EMAIL_TEMPLATES];
+      const template = EMAIL_TEMPLATES[registrationStatus as keyof typeof EMAIL_TEMPLATES];
 
       // status not in list of statuses yet: registered, confirmation, rejected, waitlisted
       if (!template) {
-        console.log(`No email template for status: ${registration_status}`);
+        console.log(`No email template for status: ${registrationStatus}`);
         continue;
       }
 
@@ -90,7 +90,7 @@ export const handler = async (event: SNSEvent) => {
             },
             Body: {
               Text: {
-                Data: template.body(first_name),
+                Data: template.body(firstName),
                 Charset: 'UTF-8',
               },
             },
@@ -101,7 +101,7 @@ export const handler = async (event: SNSEvent) => {
       // Sending Email
       const command = new SendEmailCommand(params);
       await ses.send(command);
-      console.log(`Email sent to ${email} for status: ${registration_status}`);
+      console.log(`Email sent to ${email} for status: ${registrationStatus}`);
     }
 
     // Success
