@@ -39,7 +39,7 @@ const notifyByEmail = async (event: SNSEvent) => {
       // Sending Email
       const command = new SendEmailCommand(params);
       await ses.send(command);
-      console.log("Email notifying change of registration status is sent successfully.")
+      console.log('Email notifying change of registration status is sent successfully.');
     }
   } catch (error) {
     console.error('Error notifying users by email', error);
