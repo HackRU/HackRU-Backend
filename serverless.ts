@@ -16,6 +16,8 @@ import points from '@functions/points';
 import updateBuyIns from '@functions/update-buy-ins';
 import getBuyIns from '@functions/get-buy-ins';
 import notifyByEmail from '@functions/notify-by-email';
+import verifyEmail from '@functions/verify-email';
+
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -57,6 +59,7 @@ const serverlessConfiguration: AWS = {
     updateBuyIns,
     getBuyIns,
     notifyByEmail,
+    verifyEmail,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
