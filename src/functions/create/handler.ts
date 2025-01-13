@@ -51,6 +51,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     const doc = {
       email: uEmail,
+      email_verified: false,
       role: {
         hacker: true,
         volunteer: false,

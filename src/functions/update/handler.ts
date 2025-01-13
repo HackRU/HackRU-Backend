@@ -8,9 +8,11 @@ import { MongoDB, validateToken, ensureRoles } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { Document, WithId } from 'mongodb';
+// eslint-disable-next-line @typescript-eslint/naming-convention
+import AWS from 'aws-sdk';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-const CHECK_IN_START_DATE = new Date('2024-10-26T10:30:00');
+const CHECK_IN_START_DATE = new Date('2025-02-01T10:30:00');
 const CHECK_IN_CUT_OFF = new Date(CHECK_IN_START_DATE.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days after check-in start
 
 const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
@@ -98,6 +100,24 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     if (authUser.role['director'] || authUser.role['organizer'])
       await users.updateOne({ email: event.body.user_email }, event.body.updates);
     else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, event.body.updates);
+
+    // send to sns if registration status is updated
+    if (event.body.updates?.$set?.registration_status) {
+      const emailPayload = {
+        email: event.body.user_email,
+        first_name: updatedUser.first_name,
+        last_name: updatedUser.last_name,
+        registration_status: event.body.updates.$set.registration_status || 'error',
+      };
+      // publish to sns topic
+      const sns = new AWS.SNS();
+      await sns
+        .publish({
+          TopicArn: process.env.SNS_TOPIC_ARN,
+          Message: JSON.stringify(emailPayload),
+        })
+        .promise();
+    }
 
     return {
       statusCode: 200,
@@ -194,7 +214,11 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
           return 'Missing required fields';
       } else return true;
     }
-    if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates))
+    if (
+      ['_id', 'password', 'discord', 'created_at', 'registered_at', 'email_verified'].some(
+        (lockedProp) => lockedProp in setUpdates
+      )
+    )
       return 'Cannot update locked fields';
 
     return true;

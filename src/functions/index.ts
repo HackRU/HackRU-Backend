@@ -13,3 +13,5 @@ export { default as leaderboard } from './leaderboard';
 export { default as points } from './points';
 export { default as updateBuyIns } from './update-buy-ins';
 export { default as getBuyIns } from './get-buy-ins';
+export { default as notifyByEmail } from './notify-by-email';
+export { default as verifyEmail } from './verify-email';
