@@ -110,7 +110,7 @@ const verifyEmail: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
           },
           Body: {
             Html: {
-              Data: `<p>Hey ${user.first_name + ' ' + user.last_name}!</p><p>You can use this link to verify your HackRU account email: <a href="https://hackru.org/verify/${verifyCode}">https://api.hackru.org/verify-email/${verifyCode}</a></p><p>This link expires in 3 days. Do not share it with others.</p><p>If you did not create a HackRU account, you can safely ignore this message.</p><p>- HackRU Team</p>`,
+              Data: `<p>Hey ${user.first_name + ' ' + user.last_name}!</p><p>You can use this link to verify your HackRU account email: <a href="https://hackru.org/verify/${verifyCode}">https://hackru.org/verify/${verifyCode}</a></p><p>This link expires in 3 days. Do not share it with others.</p><p>If you did not create a HackRU account, you can safely ignore this message.</p><p>- HackRU Team</p>`,
             },
             Text: {
               Data: `Hey ${user.first_name + ' ' + user.last_name}!\n\nYou can use this link to verify your HackRU account email: https://hackru.org/verify/${verifyCode}\n\nThis link expires in 3 days. Do not share it with others.\n\nIf you did not create a HackRU account, you can safely ignore this message.\n\n- HackRU Team`,
