@@ -51,6 +51,16 @@ export function validateToken(token: string, secretKey: string, authEmail: strin
   }
 }
 
+export function verifyEmailCode(token: string, secretKey: string): string | boolean {
+  try {
+    const decoded = jwt.verify(token, secretKey) as JwtPayload;
+    return decoded.email;
+  } catch (error) {
+    console.error('Invalid token:', error);
+    return false;
+  }
+}
+
 export function ensureRoles(userRoles: Record<string, boolean>, roles: string[]): boolean {
   for (const role of roles) if (userRoles[role]) return true;
 
@@ -90,6 +100,7 @@ export interface UserDoc {
   first_name: string;
   last_name: string;
   email: string;
+  email_verified: boolean;
   password: string;
   role: {
     hacker: boolean;

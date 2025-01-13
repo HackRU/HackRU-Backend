@@ -214,7 +214,11 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
           return 'Missing required fields';
       } else return true;
     }
-    if (['_id', 'password', 'discord', 'created_at', 'registered_at'].some((lockedProp) => lockedProp in setUpdates))
+    if (
+      ['_id', 'password', 'discord', 'created_at', 'registered_at', 'email_verified'].some(
+        (lockedProp) => lockedProp in setUpdates
+      )
+    )
       return 'Cannot update locked fields';
 
     return true;
