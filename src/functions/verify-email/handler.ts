@@ -12,6 +12,8 @@ import * as jwt from 'jsonwebtoken';
 import { SendEmailCommand, SESv2Client } from '@aws-sdk/client-sesv2';
 
 const verifyEmail: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
+  // this function handles both cases: getting the code for email verification
+  // and verification itself
   if (event.body.code) {
     const verifiedEmail = verifyEmailCode(event.body.code, 'HRUV' + process.env.JWT_SECRET);
     if (!verifiedEmail) {
@@ -60,6 +62,7 @@ const verifyEmail: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
   }
 
+  // generating token for email verification part
   const email = event.body.email.toLowerCase();
   const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
   if (!isValidToken) {
