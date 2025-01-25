@@ -26,7 +26,7 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     // connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const pointCollection = db.getCollection('f24-points-syst');
+    const pointCollection = db.getCollection('s25-points-syst');
     const userPoints = await pointCollection.findOne({ email: event.body.email });
 
     if (!userPoints || !userPoints.total_points) {

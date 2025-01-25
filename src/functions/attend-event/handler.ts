@@ -109,7 +109,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     if (event.body.points) {
-      const points = db.getCollection('f24-points-syst');
+      const points = db.getCollection('s25-points-syst');
       const userPoints = await points.findOne({ email: event.body.qr });
       if (!userPoints) {
         await points.insertOne({
