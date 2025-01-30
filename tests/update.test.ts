@@ -27,17 +27,17 @@ jest.mock('../src/util', () => ({
 }));
 
 // mock aws sns in the update functions
-jest.mock('aws-sdk', () => {
-  const SNSMock = {
-    publish: jest.fn().mockReturnValue({
-      promise: jest.fn().mockResolvedValue({}),
-    }),
-  };
+// jest.mock('aws-sdk', () => {
+//   const SNSMock = {
+//     publish: jest.fn().mockReturnValue({
+//       promise: jest.fn().mockResolvedValue({}),
+//     }),
+//   };
 
-  return {
-    SNS: jest.fn(() => SNSMock),
-  };
-});
+//   return {
+//     SNS: jest.fn(() => SNSMock),
+//   };
+// });
 
 describe('/update endpoint', () => {
   beforeEach(() => {

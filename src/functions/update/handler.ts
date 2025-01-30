@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { Document, WithId } from 'mongodb';
 // eslint-disable-next-line @typescript-eslint/naming-convention
-import AWS from 'aws-sdk';
+// import AWS from 'aws-sdk';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const CHECK_IN_START_DATE = new Date('2025-02-01T10:30:00');
