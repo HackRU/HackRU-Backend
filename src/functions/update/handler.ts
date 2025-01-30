@@ -101,23 +101,23 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       await users.updateOne({ email: event.body.user_email }, event.body.updates);
     else if (authUser.role['hacker']) await users.updateOne({ email: authUser.email }, event.body.updates);
 
-    // send to sns if registration status is updated
-    if (event.body.updates?.$set?.registration_status) {
-      const emailPayload = {
-        email: event.body.user_email,
-        first_name: updatedUser.first_name,
-        last_name: updatedUser.last_name,
-        registration_status: event.body.updates.$set.registration_status || 'error',
-      };
-      // publish to sns topic
-      const sns = new AWS.SNS();
-      await sns
-        .publish({
-          TopicArn: process.env.SNS_TOPIC_ARN,
-          Message: JSON.stringify(emailPayload),
-        })
-        .promise();
-    }
+    // send to sns if registration status is updated (turn off this feature for now)
+    // if (event.body.updates?.$set?.registration_status) {
+    //   const emailPayload = {
+    //     email: event.body.user_email,
+    //     first_name: updatedUser.first_name,
+    //     last_name: updatedUser.last_name,
+    //     registration_status: event.body.updates.$set.registration_status || 'error',
+    //   };
+    //   // publish to sns topic
+    //   const sns = new AWS.SNS();
+    //   await sns
+    //     .publish({
+    //       TopicArn: process.env.SNS_TOPIC_ARN,
+    //       Message: JSON.stringify(emailPayload),
+    //     })
+    //     .promise();
+    // }
 
     return {
       statusCode: 200,
