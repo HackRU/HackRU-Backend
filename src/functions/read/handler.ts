@@ -9,7 +9,6 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
     // Check if token is valid
-    /* 
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
     if (!isValidToken) {
       return {
@@ -21,7 +20,6 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
       };
     }
 
-    */
     // Connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
