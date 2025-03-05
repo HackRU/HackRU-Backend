@@ -38,7 +38,7 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
         }),
       };
     }
-    
+
     // Ensure user has proper role
     const roles = ['hacker', 'director', 'organizer'];
     if (!ensureRoles(authUser.role, roles)) {
@@ -62,10 +62,9 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
       };
     }
 
-    
     // Find the user
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    if(!event.body.all) {
+    if (!event.body.all) {
       const lookUpUser = await users.findOne({ email: lookupEmail }, { projection: { password: 0, _id: 0 } }); // exclude password and id
       if (!lookUpUser) {
         return {
@@ -100,7 +99,6 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
         body: JSON.stringify(lookUpAllUsers),
       };
     }
-
   } catch (error) {
     console.error('Error reading user:', error);
     return {
