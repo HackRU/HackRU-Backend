@@ -11,6 +11,9 @@ jest.mock('../src/util', () => ({
       disconnect: jest.fn(),
       getCollection: jest.fn().mockReturnValue({
         findOne: jest.fn(),
+        find: jest.fn().mockReturnValue({
+          toArray: jest.fn(),
+        }),
       }),
     }),
   },
@@ -29,6 +32,7 @@ describe('/read endpoint', () => {
 
   const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
   const mockCallback = jest.fn();
+  const findMock = util.MongoDB.getInstance('uri').getCollection('users').find as jest.Mock;
 
   it('invalid token', async () => {
     const userData = {
@@ -146,6 +150,35 @@ describe('/read endpoint', () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body).toBeDefined();
+  });
+
+  it('success case for all lookup', async () => {
+    // For the "all" branch, auth user must have director or organizer role.
+    findOneMock.mockReturnValueOnce({
+      email: 'director@hackru.org',
+      role: {
+        hacker: true,
+        organizer: false,
+        director: true,
+      },
+    });
+    const allUsers = [
+      { email: 'user1@hackru.org', name: 'User One' },
+      { email: 'user2@hackru.org', name: 'User Two' },
+    ];
+    const toArrayMock = jest.fn().mockResolvedValue(allUsers);
+    findMock.mockReturnValueOnce({ toArray: toArrayMock });
+    const userData = {
+      auth_email: 'director@hackru.org',
+      auth_token: 'mockToken',
+      email: 'anyemail@hackru.org', // email is not used in the lookup when all=true
+      all: true,
+    };
+    const mockEvent = createEvent(userData, path, httpMethod);
+    const res = await main(mockEvent, mockContext, mockCallback);
+
+    expect(res.statusCode).toBe(200);
+    expect(JSON.parse(res.body)).toEqual(allUsers);
   });
 
   it('internal server error', async () => {
