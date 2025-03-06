@@ -50,7 +50,7 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
     }
 
     const lookupEmail = event.body.email.toLowerCase();
-    if (!authUser.role['director'] && !authUser.role['organizer'] && authUser.email !== lookupEmail) {
+    if (!authUser.role['director'] && !authUser.role['organizer'] && (authUser.email !== lookupEmail || event.body.all)) {
       return {
         statusCode: 403,
         body: JSON.stringify({
