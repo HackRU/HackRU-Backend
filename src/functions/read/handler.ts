@@ -53,7 +53,8 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
 
     // Ensures user can only look up their own information
     if (
-      (!authUser.role['director'] && !authUser.role['organizer']) &&
+      !authUser.role['director'] &&
+      !authUser.role['organizer'] &&
       (authUser.email !== lookupEmail || event.body.all)
     ) {
       return {
