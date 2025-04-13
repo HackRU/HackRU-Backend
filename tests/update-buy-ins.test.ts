@@ -96,8 +96,27 @@ describe('Update-Buy-Ins tests', () => {
     expect(result.statusCode).toBe(403);
     expect(JSON.parse(result.body).message).toBe('Points distributed exceed user point total.');
   });
+  //case 5
+  it('non-numeric value entered for input', async () => {
+    findOneMock.mockReturnValueOnce({
+      email: userData.email,
+      total_points: 30,
+      balance: 2,
+      buy_ins: [
+        { prize_id: 'prize1', buy_in: 'random' },
+        { prize_id: 'prize2', buy_in: 20 },
+      ],
+    });
 
-  // case 5
+    const mockEvent = createEvent(userData, path, httpMethod);
+
+    const result = await main(mockEvent, mockContext, mockCallback);
+
+    expect(result.statusCode).toBe(400);
+    expect(JSON.parse(result.body).message).toBe('Requested point change is not a valid integer input');
+  });
+
+  // case 6
   it('successfully update user point balance', async () => {
     findOneMock.mockReturnValueOnce({
       email: userData.email,

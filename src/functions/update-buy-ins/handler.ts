@@ -79,6 +79,26 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
       };
     }
 
+    //validate point update
+    for (let i = 0; i < userBuyInsSorted.length; i++) {
+      let value = userBuyInsSorted[i].buy_in;
+      console.log(value);
+      if (value === '') {
+        userBuyInsSorted[i].buy_in = 0;
+      }
+
+      let numVal = parseInt(value, 10);
+      if (Number.isNaN(numVal)) {
+        return {
+          statusCode: 400,
+          body: JSON.stringify({
+            statusCode: 400,
+            message: 'Requested point change is not a valid integer input',
+          }),
+        };
+      }
+    }
+
     //update the buy_ins array
     await pointCollection.updateOne({ email: event.body.email }, { $set: { buy_ins: event.body.buy_ins } });
     return {

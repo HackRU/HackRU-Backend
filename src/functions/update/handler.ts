@@ -4,6 +4,8 @@ import { middyfy } from '@libs/lambda';
 
 import schema from './schema';
 
+import { validateEmail } from '../../helper';
+
 import { MongoDB, validateToken, ensureRoles } from '../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -213,6 +215,12 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
         )
           return 'Missing required fields';
       } else return true;
+    }
+
+    if ('email' in setUpdates) {
+      if (!validateEmail(setUpdates.email)) {
+        return 'Improper Email format';
+      }
     }
     if (
       ['_id', 'password', 'discord', 'created_at', 'registered_at', 'email_verified'].some(

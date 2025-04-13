@@ -261,6 +261,7 @@ describe('/update endpoint', () => {
         },
       },
     };
+
     jest.clearAllMocks();
     findOneMock.mockReturnValue({
       //successful update
@@ -297,5 +298,22 @@ describe('/update endpoint', () => {
     const mockEvent = createEvent(completeUserData, '/update', 'POST');
     const res = await main(mockEvent, mockContext, mockCallback);
     expect(res.statusCode).toBe(200);
+  });
+  //case 9
+  it('Invalid email format', async () => {
+    const completeUserData = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          email: 'randomVal',
+        },
+      },
+    };
+    const mockEvent = createEvent(completeUserData, '/update', 'POST');
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toBe('Improper Email format');
   });
 });
