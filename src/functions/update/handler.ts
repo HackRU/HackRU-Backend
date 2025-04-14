@@ -218,9 +218,9 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
     }
 
     if ('email' in setUpdates) {
-      if (!validateEmail(setUpdates.email)) {
+      if (!validateEmail(setUpdates.email)) 
         return 'Improper Email format';
-      }
+      
     }
     if (
       ['_id', 'password', 'discord', 'created_at', 'registered_at', 'email_verified'].some(

@@ -80,14 +80,11 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     }
 
     //validate point update
-    for (let i = 0; i < userBuyInsSorted.length; i++) {
-      let value = userBuyInsSorted[i].buy_in;
-      console.log(value);
-      if (value === '') {
-        userBuyInsSorted[i].buy_in = 0;
-      }
+    for (const userBuyIn of userBuyInsSorted) {
+      const value = userBuyIn.buy_in;
+      if (value === '') userBuyIn.buy_in = 0;
 
-      let numVal = parseInt(value, 10);
+      const numVal = parseInt(value, 10);
       if (Number.isNaN(numVal)) {
         return {
           statusCode: 400,
