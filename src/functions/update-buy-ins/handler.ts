@@ -87,10 +87,19 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
       const numVal = parseInt(value, 10);
       if (Number.isNaN(numVal)) {
         return {
-          statusCode: 400,
+          statusCode: 403,
           body: JSON.stringify({
-            statusCode: 400,
+            statusCode: 403,
             message: 'Requested point change is not a valid integer input',
+          }),
+        };
+      }
+      if (numVal >= 1000 || numVal <= -1000) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({
+            statusCode: 403,
+            message: 'Requested point change is not in a valid point range',
           }),
         };
       }

@@ -29,9 +29,9 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   const uEmail = event.body.email.toLowerCase();
   if (!validateEmail(uEmail)) {
     return {
-      statusCode: 400,
+      statusCode: 403,
       body: JSON.stringify({
-        statusCode: 400,
+        statusCode: 403,
         message: 'Improper Email format',
       }),
     };

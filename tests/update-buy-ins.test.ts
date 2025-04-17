@@ -112,11 +112,29 @@ describe('Update-Buy-Ins tests', () => {
 
     const result = await main(mockEvent, mockContext, mockCallback);
 
-    expect(result.statusCode).toBe(400);
+    expect(result.statusCode).toBe(403);
     expect(JSON.parse(result.body).message).toBe('Requested point change is not a valid integer input');
   });
-
   // case 6
+  it('Buy-in points out of range', async () => {
+    findOneMock.mockReturnValueOnce({
+      email: userData.email,
+      total_points: 30,
+      balance: 2,
+      buy_ins: [
+        { prize_id: 'prize1', buy_in: 1500 },
+        { prize_id: 'prize2', buy_in: 20 },
+      ],
+    });
+
+    const mockEvent = createEvent(userData, path, httpMethod);
+
+    const result = await main(mockEvent, mockContext, mockCallback);
+
+    expect(result.statusCode).toBe(403);
+    expect(JSON.parse(result.body).message).toBe('Requested point change is not in a valid point range');
+  });
+  // case 7
   it('successfully update user point balance', async () => {
     findOneMock.mockReturnValueOnce({
       email: userData.email,

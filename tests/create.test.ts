@@ -56,7 +56,7 @@ describe('Create endpoint', () => {
     (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
     const res = await main(mockEvent, mockContext, mockCallback);
 
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(403);
     expect(JSON.parse(res.body).message).toBe('Improper Email format');
   });
   it('Registration time has passed', async () => {
