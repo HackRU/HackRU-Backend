@@ -7,6 +7,8 @@ import schema from './schema';
 import { MongoDB } from '../../util';
 import * as config from '../../config';
 
+import { validateEmail } from '../../helper';
+
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -25,6 +27,15 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   }
 
   const uEmail = event.body.email.toLowerCase();
+  if (!validateEmail(uEmail)) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({
+        statusCode: 403,
+        message: 'Improper Email format',
+      }),
+    };
+  }
   let password = event.body.password;
 
   try {

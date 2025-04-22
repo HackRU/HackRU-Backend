@@ -79,6 +79,32 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
       };
     }
 
+    //validate point update
+    for (const userBuyIn of userBuyInsSorted) {
+      const value = userBuyIn.buy_in;
+      if (value === '') userBuyIn.buy_in = 0;
+
+      const numVal = parseInt(value, 10);
+      if (Number.isNaN(numVal)) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({
+            statusCode: 403,
+            message: 'Requested point change is not a valid integer input',
+          }),
+        };
+      }
+      if (numVal >= 1000 || numVal <= -1000) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({
+            statusCode: 403,
+            message: 'Requested point change is not in a valid point range',
+          }),
+        };
+      }
+    }
+
     //update the buy_ins array
     await pointCollection.updateOne({ email: event.body.email }, { $set: { buy_ins: event.body.buy_ins } });
     return {
