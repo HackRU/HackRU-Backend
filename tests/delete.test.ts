@@ -58,19 +58,17 @@ describe('Delete Tests', () => {
   });
 
   it('Auth user does not have director/organizer role', async () => {
-    findOneMock
-      .mockReturnValueOnce({})
-      .mockReturnValueOnce({
-        role: {
-          hacker: false,
-          volunteer: true,
-          judge: false,
-          sponsor: false,
-          mentor: false,
-          organizer: false,
-          director: false,
-        },
-      });
+    findOneMock.mockReturnValueOnce({}).mockReturnValueOnce({
+      role: {
+        hacker: false,
+        volunteer: true,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+    });
     const mockEvent = createEvent(userData, path, httpMethod);
 
     const result = await main(mockEvent, mockContext, undefined);

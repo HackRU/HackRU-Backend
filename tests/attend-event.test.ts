@@ -1,3 +1,7 @@
+import { main } from '../src/functions/attend-event/handler';
+import { createEvent, mockContext } from './helper';
+import * as util from '../src/util';
+
 jest.mock('../src/util', () => ({
   // eslint-disable-next-line @typescript-eslint/naming-convention
   MongoDB: {
@@ -6,7 +10,7 @@ jest.mock('../src/util', () => ({
       disconnect: jest.fn(),
       getCollection: jest.fn().mockReturnValue({
         findOne: jest.fn(),
-        deleteOne: jest.fn(),
+        updateOne: jest.fn(),
       }),
     }),
   },
@@ -14,84 +18,147 @@ jest.mock('../src/util', () => ({
   ensureRoles: jest.fn((roleDict, validRoles) => {
     return validRoles.some((role) => roleDict[role]);
   }),
-}))
+}));
 
-import { main } from '../src/functions/delete/handler'
-import { createEvent, mockContext } from './helper'
-import * as util from '../src/util'
-
-// Ensure util mocks are applied before any tests
-
-describe('Delete Tests', () => {
+describe('Attend-Event tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.clearAllMocks(); // Clear mocks before each test to avoid interference
   });
 
   const userData = {
-    auth_email: 'director@test.org',
+    auth_email: 'authUser@test.org',
     auth_token: 'mockToken',
-    user_email: 'target@test.org',
-  }
-  const path = '/delete'
-  const httpMethod = 'POST'
+    qr: 'test@test.org',
+    event: 'lunch',
+    limit: 1,
+  };
+  const path = '/attend-event';
+  const httpMethod = 'POST';
 
-  const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock
-  const deleteOneMock = util.MongoDB.getInstance('uri').getCollection('users').deleteOne as jest.Mock
+  // this will make it more concise and easier to understand (mocking)
+  const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
+  const mockCallback = jest.fn();
 
+  // case 1: auth token is not valid
   it('auth token is not valid', async () => {
-    const mockEvent = createEvent(userData, path, httpMethod)
+    const mockEvent = createEvent(userData, path, httpMethod);
 
-    const result = await main(mockEvent, mockContext, undefined)
+    const result = await main(mockEvent, mockContext, mockCallback);
 
-    expect(result.statusCode).toBe(401)
-    expect(JSON.parse(result.body).message).toBe('Unauthorized')
-  })
+    expect(result.statusCode).toBe(401);
+    expect(JSON.parse(result.body).message).toBe('Unauthorized.');
+  });
 
+  // case 2
   it('user does not exist', async () => {
-    findOneMock.mockReturnValueOnce(null)
-    const mockEvent = createEvent(userData, path, httpMethod)
+    findOneMock.mockReturnValueOnce(null);
+    const mockEvent = createEvent(userData, path, httpMethod);
 
-    const result = await main(mockEvent, mockContext, undefined)
+    const result = await main(mockEvent, mockContext, mockCallback);
 
-    expect(result.statusCode).toBe(404)
-    expect(JSON.parse(result.body).message).toBe('User not found')
-  })
+    expect(result.statusCode).toBe(404);
+    expect(JSON.parse(result.body).message).toBe('User not found.');
+  });
 
+  // case 3
   it('Auth user does not have director/organizer role', async () => {
+    findOneMock.mockReturnValueOnce({}).mockReturnValueOnce({
+      role: {
+        hacker: false,
+        volunteer: true,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+    });
+    const mockEvent = createEvent(userData, path, httpMethod);
+
+    const result = await main(mockEvent, mockContext, mockCallback);
+
+    expect(result.statusCode).toBe(401);
+    expect(JSON.parse(result.body).message).toBe('Only directors/organizers can call this endpoint.');
+  });
+
+  // case 4
+  it('user tries to check into an event the second time but it can only be attended once', async () => {
     findOneMock
-      .mockReturnValueOnce({})
-      .mockReturnValueOnce({ role: { hacker: false, volunteer: true, judge: false, sponsor: false, mentor: false, organizer: false, director: false } })
-    const mockEvent = createEvent(userData, path, httpMethod)
+      .mockReturnValueOnce({
+        day_of: {
+          event: {
+            lunch: {
+              attend: 1,
+            },
+          },
+        },
+        registration_status: 'checked_in',
+      })
+      .mockReturnValueOnce({
+        role: {
+          hacker: false,
+          volunteer: false,
+          judge: false,
+          sponsor: false,
+          mentor: false,
+          organizer: true,
+          director: false,
+        },
+      });
+    const mockEvent = createEvent(userData, path, httpMethod);
 
-    const result = await main(mockEvent, mockContext, undefined)
+    const result = await main(mockEvent, mockContext, mockCallback);
 
-    expect(result.statusCode).toBe(401)
-    expect(JSON.parse(result.body).message).toBe('Only directors/organizers can call this endpoint.')
-  })
+    expect(result.statusCode).toBe(409);
+    expect(JSON.parse(result.body).message).toBe('User already checked into event.');
+  });
 
-  it('returns 500 when deleteOne does not delete', async () => {
+  // case 5
+  it('success check-in to an event', async () => {
     findOneMock
-      .mockReturnValueOnce({ email: userData.user_email })
-      .mockReturnValueOnce({ role: { hacker: false, organizer: false, director: true } })
-    deleteOneMock.mockReturnValueOnce({ deletedCount: 0 })
-    const mockEvent = createEvent(userData, path, httpMethod)
+      .mockReturnValueOnce({
+        day_of: {},
+        registration_status: 'checked_in',
+      })
+      .mockReturnValueOnce({
+        role: {
+          hacker: false,
+          volunteer: true,
+          judge: false,
+          sponsor: false,
+          mentor: false,
+          organizer: false,
+          director: true,
+        },
+      });
+    const mockEvent = createEvent(userData, path, httpMethod);
+    const result = await main(mockEvent, mockContext, mockCallback);
 
-    const result = await main(mockEvent, mockContext, undefined)
+    expect(result.statusCode).toBe(200);
+    expect(JSON.parse(result.body).message).toBe('user successfully checked into event');
+  });
 
-    expect(result.statusCode).toBe(500)
-    expect(JSON.parse(result.body).message).toBe('Internal server error')
-  })
-
-  it('deletes user successfully', async () => {
+  it('user tries to attend event when they are not checked_in', async () => {
     findOneMock
-      .mockReturnValueOnce({ email: userData.user_email })
-      .mockReturnValueOnce({ role: { hacker: false, volunteer: true, organizer: true, director: false } })
-    deleteOneMock.mockReturnValueOnce({ deletedCount: 1 })
-    const mockEvent = createEvent(userData, path, httpMethod)
+      .mockReturnValueOnce({
+        day_of: {},
+        registration_status: 'registered',
+      })
+      .mockReturnValueOnce({
+        role: {
+          hacker: false,
+          volunteer: true,
+          judge: false,
+          sponsor: false,
+          mentor: false,
+          organizer: false,
+          director: true,
+        },
+      });
+    const mockEvent = createEvent(userData, path, httpMethod);
+    const result = await main(mockEvent, mockContext, mockCallback);
 
-    const result = await main(mockEvent, mockContext, undefined)
-
-    expect(result.statusCode).toBe(200)
-    expect(JSON.parse(result.body).message).toBe(`Deleted ${userData.user_email} successfully`)
-  })
-})
+    expect(result.statusCode).toBe(409);
+    expect(JSON.parse(result.body).message).toBe('User has not checked in. Current status is registered');
+  });
+});
