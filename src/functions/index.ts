@@ -15,3 +15,4 @@ export { default as updateBuyIns } from './update-buy-ins';
 export { default as getBuyIns } from './get-buy-ins';
 export { default as notifyByEmail } from './notify-by-email';
 export { default as verifyEmail } from './verify-email';
+export { default as delete } from './delete';
