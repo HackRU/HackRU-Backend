@@ -17,3 +17,4 @@ export { default as notifyByEmail } from './notify-by-email';
 export { default as verifyEmail } from './verify-email';
 export { default as delete } from './delete';
 export { default as userExists } from './user-exists';
+export { default as interestForm } from './interest-form';
