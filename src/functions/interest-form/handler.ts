@@ -34,16 +34,25 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     const docToInsert = {
       firstName,
       lastName,
-      /*TODO: Add other fields here*/
+      age,
+      phoneNumber,
+      email,
+      school,
+      levelOfStudy,
+      countryOfResidence,
+      linkedInUrl,
+      mlh_code_of_conduct,
+      mlh_privacy_policy,
+      mlh_terms_and_conditions,
     };
 
-    const result = // TODO: Insert the document you created above into the interestFormsCollection
+    const result = await interestFormsCollection.insertOne(docToInsert);
 
     // Return success
     return {
-      statusCode: /*TODO: Success Code Here */,
+      statusCode: 200, 
       body: JSON.stringify({
-        message:  /*TODO: Success Message Here */,
+        message: 'Successful Form Submission',
         submissionId: result.insertedId,
       }),
     };
