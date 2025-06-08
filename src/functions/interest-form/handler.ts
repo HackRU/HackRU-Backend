@@ -26,6 +26,20 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
       mlh_terms_and_conditions,
     } = event.body;
 
+    // Validate LinkedIn URL format if provided
+    if (linkedInUrl && linkedInUrl.trim() !== '') {
+      const linkedInRegex = /^https?:\/\/(www\.)?linkedin\.com\/in\/[a-zA-Z0-9-]+\/?$/;
+      if (!linkedInRegex.test(linkedInUrl.trim())) {
+        return {
+          statusCode: 422,
+          body: JSON.stringify({
+            statusCode: 422,
+            message: 'Please provide a valid LinkedIn profile URL (e.g., https://linkedin.com/in/yourname)',
+          }),
+        };
+      }
+    }
+
     // Connect to database
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
@@ -35,7 +49,7 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     const docToInsert = {
       firstName,
       lastName,
-      age,
+      age: age,
       phoneNumber,
       email,
       school,
