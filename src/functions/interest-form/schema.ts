@@ -10,9 +10,9 @@ export default {
     levelOfStudy: { type: 'string' },
     countryOfResidence: { type: 'string' },
     linkedInUrl: { type: 'string', format: 'uri' },
-    mlh_code_of_conduct: { type: 'boolean' }, 
-    mlh_privacy_policy: { type: 'boolean' }, 
-    mlh_terms_and_conditions: { type: 'boolean' }, 
+    mlh_code_of_conduct: { type: 'boolean' },
+    mlh_privacy_policy: { type: 'boolean' },
+    mlh_terms_and_conditions: { type: 'boolean' },
   },
   required: [
     'firstName',
@@ -24,7 +24,7 @@ export default {
     'levelOfStudy',
     'countryOfResidence',
     'mlh_code_of_conduct',
-    'mlh_privacy_policy', 
+    'mlh_privacy_policy',
     'mlh_terms_and_conditions',
   ],
 } as const;

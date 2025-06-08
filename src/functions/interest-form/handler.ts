@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import { MongoDB } from '../../util';
@@ -50,13 +51,12 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
 
     // Return success
     return {
-      statusCode: 200, 
+      statusCode: 200,
       body: JSON.stringify({
         message: 'Successful Form Submission',
         submissionId: result.insertedId,
       }),
     };
-
   } catch (error) {
     console.error('Error submitting interest form:', error);
     return {
