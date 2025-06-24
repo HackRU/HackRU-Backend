@@ -59,6 +59,9 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         }),
       };
     }
+    // Check if interest form exists, if so retrieve data from it
+    const interestForms = db.getCollection('interest-forms');
+    const interestFormsData = await interestForms.findOne({ email: uEmail });
 
     const doc = {
       email: uEmail,
@@ -78,17 +81,18 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       major: event.body.major ?? '',
       short_answer: event.body.short_answer ?? '',
       shirt_size: event.body.shirt_size ?? '',
-      first_name: event.body.first_name ?? '',
-      last_name: event.body.last_name ?? '',
+      first_name: event.body.first_name ?? interestFormsData?.firstName ?? '',
+      last_name: event.body.last_name ?? interestFormsData?.lastName ?? '',
+      age: interestFormsData?.age?.toString() ?? event.body.age ?? '',
       dietary_restrictions: event.body.dietary_restrictions ?? '',
       special_needs: event.body.special_needs ?? '',
       date_of_birth: event.body.date_of_birth ?? '',
-      school: event.body.school ?? '',
+      school: interestFormsData?.school ?? event.body.school ?? '',
       grad_year: event.body.grad_year ?? '',
       gender: event.body.gender ?? '',
-      level_of_study: event.body.level_of_study ?? '',
+      level_of_study: interestFormsData?.levelOfStudy ?? event.body.level_of_study ?? '',
       ethnicity: event.body.ethnicity ?? '',
-      phone_number: event.body.phone_number ?? '',
+      phone_number: interestFormsData?.phoneNumber ?? event.body.phone_number ?? '',
       registration_status: 'unregistered',
       day_of: {
         checkIn: false,
