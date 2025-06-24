@@ -48,6 +48,17 @@ describe('Create endpoint', () => {
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res.body).message).toBe('User created!');
   });
+  it('Email entry is invalid', async () => {
+    const mockEvent = createEvent({ email: 'notValidFormat', password: 'testPassword123' }, '/create', 'POST');
+
+    const mockCallback = jest.fn();
+
+    (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
+    const res = await main(mockEvent, mockContext, mockCallback);
+
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).message).toBe('Improper Email format');
+  });
   it('Registration time has passed', async () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('01/01/2100'));

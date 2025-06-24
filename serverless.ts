@@ -17,6 +17,9 @@ import updateBuyIns from '@functions/update-buy-ins';
 import getBuyIns from '@functions/get-buy-ins';
 import notifyByEmail from '@functions/notify-by-email';
 import verifyEmail from '@functions/verify-email';
+import deleteUser from '@functions/delete';
+import userExists from '@functions/user-exists';
+import interestForm from '@functions/interest-form';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -60,6 +63,9 @@ const serverlessConfiguration: AWS = {
     getBuyIns,
     notifyByEmail,
     verifyEmail,
+    deleteUser,
+    userExists,
+    interestForm,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {

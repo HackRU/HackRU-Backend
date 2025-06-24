@@ -144,6 +144,14 @@
         "modifiers": [
           "requiresQuotes"
         ]
+      },
+      {
+        "selector": "objectLiteralProperty",
+        "filter": {
+          "regex": "^_id$",
+          "match": true
+        },
+        "format": null
       }
     ]
   }

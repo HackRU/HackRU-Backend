@@ -1,10 +1,9 @@
 export default {
   type: 'object',
   properties: {
+    user_email: { type: 'string', format: 'email' },
     auth_email: { type: 'string', format: 'email' },
     auth_token: { type: 'string' },
-    email: { type: 'string', format: 'email' },
-    all: { type: 'boolean', default: false },
   },
-  required: ['auth_email', 'auth_token', 'email'],
+  required: ['user_email', 'auth_token', 'auth_email'],
 } as const;
