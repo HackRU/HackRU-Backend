@@ -93,6 +93,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       level_of_study: interestFormsData?.levelOfStudy ?? event.body.level_of_study ?? '',
       ethnicity: event.body.ethnicity ?? '',
       phone_number: interestFormsData?.phoneNumber ?? event.body.phone_number ?? '',
+      country_of_residence: interestFormsData?.countryOfResidence ?? event.body.country_of_residence ?? '',
       registration_status: 'unregistered',
       day_of: {
         checkIn: false,
