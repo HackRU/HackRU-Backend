@@ -61,10 +61,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
     // Check if interest form exists, if so retrieve data from the most recent submission
     const interestForms = db.getCollection('interest-forms');
-    const interestFormsData = await interestForms.findOne(
-      { email: uEmail },
-      { sort: { submittedAt: -1 } }
-    );
+    const interestFormsData = await interestForms.findOne({ email: uEmail }, { sort: { submittedAt: -1 } });
     const doc = {
       email: uEmail,
       email_verified: false,
