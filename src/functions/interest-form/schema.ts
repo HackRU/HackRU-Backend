@@ -9,7 +9,7 @@ export default {
     school: { type: 'string' },
     levelOfStudy: { type: 'string' },
     countryOfResidence: { type: 'string' },
-    linkedInUrl: { type: 'string', format: 'uri' },
+    linkedInUrl: { type: 'string'},
     mlh_code_of_conduct: { type: 'boolean' },
     mlh_privacy_policy: { type: 'boolean' },
     mlh_terms_and_conditions: { type: 'boolean' },
