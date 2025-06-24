@@ -59,6 +59,7 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
       mlh_code_of_conduct,
       mlh_privacy_policy,
       mlh_terms_and_conditions,
+      submittedAt: new Date().toISOString(),
     };
 
     const result = await interestFormsCollection.insertOne(docToInsert);
