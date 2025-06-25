@@ -106,9 +106,27 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       },
       created_at: new Date().toISOString(),
       registered_at: null,
+      interestFormMigrated: interestFormsData ? true : false,
+      interestFormMigratedAt: interestFormsData ? new Date().toISOString() : null,
     };
 
     await users.insertOne(doc);
+
+    if (interestFormsData) {
+      try {
+        await interestForms.updateOne(
+          { _id: interestFormsData._id },
+          {
+            $set: {
+              migrated_to_user_account: true,
+              migrated_at: new Date().toISOString(),
+            },
+          }
+        );
+      } catch (migrationError) {
+        console.warn('Failed to mark interest form as migrated:', migrationError);
+      }
+    }
 
     return {
       statusCode: 200,
