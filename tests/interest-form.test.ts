@@ -68,7 +68,12 @@ describe('Submit Interest Form tests', () => {
 
     expect(connectMock).toHaveBeenCalled();
     expect(getCollectionMock).toHaveBeenCalledWith('interest-forms');
-    expect(insertOneMock).toHaveBeenCalledWith(validFormData);
+
+    // Forgot to check submittedAt field
+    expect(insertOneMock).toHaveBeenCalledWith({
+      ...validFormData,
+      submittedAt: expect.any(String),
+    });
 
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body).message).toBe('Successful Form Submission');
@@ -102,7 +107,12 @@ describe('Submit Interest Form tests', () => {
 
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body).message).toBe('Successful Form Submission');
-    expect(insertOneMock).toHaveBeenCalledWith(differentValidData);
+
+    // Forgot to check the submissionAt
+    expect(insertOneMock).toHaveBeenCalledWith({
+      ...differentValidData,
+      submittedAt: expect.any(String),
+    });
   });
 
   it('successfully submits form with minimal required fields', async () => {
@@ -132,7 +142,11 @@ describe('Submit Interest Form tests', () => {
 
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body).message).toBe('Successful Form Submission');
-    expect(insertOneMock).toHaveBeenCalledWith(minimalFormData);
+
+    expect(insertOneMock).toHaveBeenCalledWith({
+      ...minimalFormData,
+      submittedAt: expect.any(String),
+    });
   });
 
   it('handles invalid data causing runtime error', async () => {
@@ -162,6 +176,7 @@ describe('Submit Interest Form tests', () => {
     expect(JSON.parse(result.body).message).toBe('Internal Server Error');
     expect(JSON.parse(result.body).error).toBe('Invalid data format');
   });
+
   it('successfully submits form with valid LinkedIn URL', async () => {
     const mockInsertResult = {
       insertedId: 'mock-object-id-123',
@@ -174,6 +189,10 @@ describe('Submit Interest Form tests', () => {
 
     expect(result.statusCode).toBe(200);
     expect(JSON.parse(result.body).message).toBe('Successful Form Submission');
-    expect(insertOneMock).toHaveBeenCalledWith(validFormData);
+
+    expect(insertOneMock).toHaveBeenCalledWith({
+      ...validFormData,
+      submittedAt: expect.any(String),
+    });
   });
 });
