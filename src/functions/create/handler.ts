@@ -59,7 +59,9 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
         }),
       };
     }
-
+    // Check if interest form exists, if so retrieve data from the most recent submission
+    const interestForms = db.getCollection('interest-forms');
+    const interestFormsData = await interestForms.findOne({ email: uEmail }, { sort: { submittedAt: -1 } });
     const doc = {
       email: uEmail,
       email_verified: false,
@@ -78,17 +80,19 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       major: event.body.major ?? '',
       short_answer: event.body.short_answer ?? '',
       shirt_size: event.body.shirt_size ?? '',
-      first_name: event.body.first_name ?? '',
-      last_name: event.body.last_name ?? '',
+      first_name: event.body.first_name ?? interestFormsData?.firstName ?? '',
+      last_name: event.body.last_name ?? interestFormsData?.lastName ?? '',
+      age: interestFormsData?.age?.toString() ?? event.body.age ?? '',
       dietary_restrictions: event.body.dietary_restrictions ?? '',
       special_needs: event.body.special_needs ?? '',
       date_of_birth: event.body.date_of_birth ?? '',
-      school: event.body.school ?? '',
+      school: interestFormsData?.school ?? event.body.school ?? '',
       grad_year: event.body.grad_year ?? '',
       gender: event.body.gender ?? '',
-      level_of_study: event.body.level_of_study ?? '',
+      level_of_study: interestFormsData?.levelOfStudy ?? event.body.level_of_study ?? '',
       ethnicity: event.body.ethnicity ?? '',
-      phone_number: event.body.phone_number ?? '',
+      phone_number: interestFormsData?.phoneNumber ?? event.body.phone_number ?? '',
+      country_of_residence: interestFormsData?.countryOfResidence ?? event.body.country_of_residence ?? '',
       registration_status: 'unregistered',
       day_of: {
         checkIn: false,
@@ -102,9 +106,27 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       },
       created_at: new Date().toISOString(),
       registered_at: null,
+      interestFormMigrated: interestFormsData ? true : false,
+      interestFormMigratedAt: interestFormsData ? new Date().toISOString() : null,
     };
 
     await users.insertOne(doc);
+
+    if (interestFormsData) {
+      try {
+        await interestForms.updateOne(
+          { _id: interestFormsData._id },
+          {
+            $set: {
+              migrated_to_user_account: true,
+              migrated_at: new Date().toISOString(),
+            },
+          }
+        );
+      } catch (migrationError) {
+        console.warn('Failed to mark interest form as migrated:', migrationError);
+      }
+    }
 
     return {
       statusCode: 200,
