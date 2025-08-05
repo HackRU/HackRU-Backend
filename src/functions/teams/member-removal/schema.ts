@@ -7,8 +7,8 @@ export default {
     member_emails: {
       type: 'array',
       items: { type: 'string', format: 'email' },
-      minItems: 1
-    }
+      minItems: 1,
+    },
   },
-  required: ['auth_token', 'auth_email', 'team_id', 'member_emails']
+  required: ['auth_token', 'auth_email', 'team_id', 'member_emails'],
 } as const;

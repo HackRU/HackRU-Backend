@@ -45,7 +45,7 @@ describe('Teams Member Removal Handler', () => {
     team_id: 'team123',
     member_emails: ['member1@test.com', 'member2@test.com'],
   };
-  
+
   const mockEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
 
   const mockLeaderUser = {
@@ -72,7 +72,8 @@ describe('Teams Member Removal Handler', () => {
     // Mock leader user lookup
     mockUsersCollection.findOne
       .mockResolvedValueOnce(mockLeaderUser) // Auth user lookup
-      .mockResolvedValueOnce({ // member1@test.com lookup
+      .mockResolvedValueOnce({
+        // member1@test.com lookup
         email: 'member1@test.com',
         confirmed_team: true,
         team_info: {
@@ -81,7 +82,8 @@ describe('Teams Member Removal Handler', () => {
           pending_invites: [],
         },
       })
-      .mockResolvedValueOnce({ // member2@test.com lookup
+      .mockResolvedValueOnce({
+        // member2@test.com lookup
         email: 'member2@test.com',
         confirmed_team: true,
         team_info: {
@@ -178,10 +180,14 @@ describe('Teams Member Removal Handler', () => {
     mockUsersCollection.findOne.mockResolvedValue(nonLeaderUser);
     mockTeamsCollection.findOne.mockResolvedValue(mockTeam);
 
-    const eventWithNonLeader = createEvent({
-      ...mockEventData,
-      auth_email: 'member@test.com',
-    }, '/teams/member-removal', 'POST');
+    const eventWithNonLeader = createEvent(
+      {
+        ...mockEventData,
+        auth_email: 'member@test.com',
+      },
+      '/teams/member-removal',
+      'POST'
+    );
 
     const result = await main(eventWithNonLeader, mockContext);
 
@@ -194,28 +200,35 @@ describe('Teams Member Removal Handler', () => {
     // Mock leader user lookup
     mockUsersCollection.findOne
       .mockResolvedValueOnce(mockLeaderUser) // Auth user lookup
-      .mockResolvedValueOnce({ // user with pending invite
+      .mockResolvedValueOnce({
+        // user with pending invite
         email: 'invited@test.com',
         confirmed_team: false,
         team_info: {
           team_id: null,
           role: null,
-          pending_invites: [{
-            team_id: 'team123',
-            invited_by: 'leader@test.com',
-            invited_at: new Date(),
-            team_name: 'Test Team',
-          }],
+          pending_invites: [
+            {
+              team_id: 'team123',
+              invited_by: 'leader@test.com',
+              invited_at: new Date(),
+              team_name: 'Test Team',
+            },
+          ],
         },
       });
 
     mockTeamsCollection.findOne.mockResolvedValue(mockTeam);
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
 
-    const eventWithPendingInvite = createEvent({
-      ...mockEventData,
-      member_emails: ['invited@test.com'],
-    }, '/teams/member-removal', 'POST');
+    const eventWithPendingInvite = createEvent(
+      {
+        ...mockEventData,
+        member_emails: ['invited@test.com'],
+      },
+      '/teams/member-removal',
+      'POST'
+    );
 
     const result = await main(eventWithPendingInvite, mockContext);
 
@@ -239,10 +252,14 @@ describe('Teams Member Removal Handler', () => {
     mockUsersCollection.findOne.mockResolvedValue(mockLeaderUser);
     mockTeamsCollection.findOne.mockResolvedValue(mockTeam);
 
-    const eventWithLeaderRemoval = createEvent({
-      ...mockEventData,
-      member_emails: ['leader@test.com', 'member1@test.com'],
-    }, '/teams/member-removal', 'POST');
+    const eventWithLeaderRemoval = createEvent(
+      {
+        ...mockEventData,
+        member_emails: ['leader@test.com', 'member1@test.com'],
+      },
+      '/teams/member-removal',
+      'POST'
+    );
 
     const result = await main(eventWithLeaderRemoval, mockContext);
 
@@ -255,7 +272,8 @@ describe('Teams Member Removal Handler', () => {
     mockUsersCollection.findOne
       .mockResolvedValueOnce(mockLeaderUser) // Auth user lookup
       .mockResolvedValueOnce(null) // nonexistent@test.com lookup
-      .mockResolvedValueOnce({ // member1@test.com lookup
+      .mockResolvedValueOnce({
+        // member1@test.com lookup
         email: 'member1@test.com',
         confirmed_team: true,
         team_info: {
@@ -269,10 +287,14 @@ describe('Teams Member Removal Handler', () => {
     mockTeamsCollection.updateOne.mockResolvedValue({ acknowledged: true });
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
 
-    const eventWithNonexistentUser = createEvent({
-      ...mockEventData,
-      member_emails: ['nonexistent@test.com', 'member1@test.com'],
-    }, '/teams/member-removal', 'POST');
+    const eventWithNonexistentUser = createEvent(
+      {
+        ...mockEventData,
+        member_emails: ['nonexistent@test.com', 'member1@test.com'],
+      },
+      '/teams/member-removal',
+      'POST'
+    );
 
     const result = await main(eventWithNonexistentUser, mockContext);
 

@@ -107,8 +107,8 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     }
 
     // Process target emails
-    const targetEmails = event.body.member_emails.map(email => email.toLowerCase());
-    
+    const targetEmails = event.body.member_emails.map((email) => email.toLowerCase());
+
     // Prevent leader from removing themselves
     if (targetEmails.includes(event.body.auth_email.toLowerCase())) {
       return {
@@ -121,12 +121,12 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     }
 
     let membersAffected = 0;
-    
+
     // Process each target email to determine if they are team members or have pending invites
     for (const targetEmail of targetEmails) {
       // Check if user exists
       const targetUser = await users.findOne({ email: targetEmail });
-      
+
       if (!targetUser) {
         // Skip non-existent users
         continue;
@@ -134,10 +134,10 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
 
       // Check if user is a team member
       const isTeamMember = team.members.includes(targetEmail);
-      
+
       // Check if user has pending invite for this team
       const hasPendingInvite = targetUser.team_info?.pending_invites?.some(
-        invite => invite.team_id === event.body.team_id
+        (invite) => invite.team_id === event.body.team_id
       );
 
       if (isTeamMember) {
@@ -159,9 +159,9 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
               team_info: {
                 team_id: null,
                 role: null,
-                pending_invites: targetUser.team_info?.pending_invites?.filter(
-                  invite => invite.team_id !== event.body.team_id
-                ) || [],
+                pending_invites:
+                  targetUser.team_info?.pending_invites?.filter((invite) => invite.team_id !== event.body.team_id) ||
+                  [],
               },
             },
           }
@@ -171,7 +171,7 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
       } else if (hasPendingInvite) {
         // Remove pending invite only
         const updatedInvites = targetUser.team_info.pending_invites.filter(
-          invite => invite.team_id !== event.body.team_id
+          (invite) => invite.team_id !== event.body.team_id
         );
 
         await users.updateOne(
