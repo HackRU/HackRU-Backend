@@ -1,7 +1,7 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
-import { MongoDB, validateToken } from '../../util';
+import { MongoDB, validateToken } from '../../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
