@@ -20,7 +20,7 @@ import verifyEmail from '@functions/verify-email';
 import deleteUser from '@functions/delete';
 import userExists from '@functions/user-exists';
 import interestForm from '@functions/interest-form';
-import teamsCreate from '@functions/teams-create';
+import teamsCreate from '@functions/teams/create';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
