@@ -67,7 +67,7 @@ const serverlessConfiguration: AWS = {
     deleteUser,
     userExists,
     interestForm,
-    teamsJoin, 
+    teamsJoin,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
