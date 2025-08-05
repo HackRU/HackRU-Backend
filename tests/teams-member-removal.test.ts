@@ -1,5 +1,3 @@
-import { main } from '../src/functions/teams/member-removal/handler';
-
 // External mock objects created before jest.mock()
 const mockUsersCollection = {
   findOne: jest.fn(),
@@ -22,28 +20,33 @@ const mockDbInstance = {
 
 jest.mock('../src/util', () => ({
   validateToken: jest.fn(),
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   MongoDB: {
     getInstance: jest.fn(() => mockDbInstance),
   },
 }));
 
-const { validateToken } = require('../src/util');
+import { main } from '../src/functions/teams/member-removal/handler';
+import { createEvent, mockContext } from './helper';
+import * as util from '../src/util';
 
 describe('Teams Member Removal Handler', () => {
+  const validateTokenMock = util.validateToken as jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
-    validateToken.mockReturnValue(true);
+    validateTokenMock.mockReturnValue(true);
     mockDbInstance.connect.mockResolvedValue(undefined);
   });
 
-  const mockEvent = {
-    body: {
-      auth_token: 'valid-token',
-      auth_email: 'leader@test.com',
-      team_id: 'team123',
-      member_emails: ['member1@test.com', 'member2@test.com'],
-    },
+  const mockEventData = {
+    auth_token: 'valid-token',
+    auth_email: 'leader@test.com',
+    team_id: 'team123',
+    member_emails: ['member1@test.com', 'member2@test.com'],
   };
+  
+  const mockEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
 
   const mockLeaderUser = {
     email: 'leader@test.com',
@@ -92,7 +95,7 @@ describe('Teams Member Removal Handler', () => {
     mockTeamsCollection.updateOne.mockResolvedValue({ acknowledged: true });
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
 
-    const result = await main(mockEvent);
+    const result = await main(mockEvent, mockContext);
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
@@ -114,9 +117,10 @@ describe('Teams Member Removal Handler', () => {
   });
 
   it('should return 401 for invalid token', async () => {
-    validateToken.mockReturnValue(false);
+    validateTokenMock.mockReturnValue(false);
 
-    const result = await main(mockEvent);
+    const invalidTokenEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
+    const result = await main(invalidTokenEvent, mockContext);
 
     expect(result.statusCode).toBe(401);
     const body = JSON.parse(result.body);
@@ -126,7 +130,8 @@ describe('Teams Member Removal Handler', () => {
   it('should return 404 when auth user not found', async () => {
     mockUsersCollection.findOne.mockResolvedValue(null);
 
-    const result = await main(mockEvent);
+    const userNotFoundEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
+    const result = await main(userNotFoundEvent, mockContext);
 
     expect(result.statusCode).toBe(404);
     const body = JSON.parse(result.body);
@@ -137,7 +142,8 @@ describe('Teams Member Removal Handler', () => {
     mockUsersCollection.findOne.mockResolvedValue(mockLeaderUser);
     mockTeamsCollection.findOne.mockResolvedValue(null);
 
-    const result = await main(mockEvent);
+    const teamNotFoundEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
+    const result = await main(teamNotFoundEvent, mockContext);
 
     expect(result.statusCode).toBe(404);
     const body = JSON.parse(result.body);
@@ -151,7 +157,8 @@ describe('Teams Member Removal Handler', () => {
       status: 'Disbanded',
     });
 
-    const result = await main(mockEvent);
+    const disbandedTeamEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
+    const result = await main(disbandedTeamEvent, mockContext);
 
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
@@ -171,15 +178,12 @@ describe('Teams Member Removal Handler', () => {
     mockUsersCollection.findOne.mockResolvedValue(nonLeaderUser);
     mockTeamsCollection.findOne.mockResolvedValue(mockTeam);
 
-    const eventWithNonLeader = {
-      ...mockEvent,
-      body: {
-        ...mockEvent.body,
-        auth_email: 'member@test.com',
-      },
-    };
+    const eventWithNonLeader = createEvent({
+      ...mockEventData,
+      auth_email: 'member@test.com',
+    }, '/teams/member-removal', 'POST');
 
-    const result = await main(eventWithNonLeader);
+    const result = await main(eventWithNonLeader, mockContext);
 
     expect(result.statusCode).toBe(403);
     const body = JSON.parse(result.body);
@@ -208,15 +212,12 @@ describe('Teams Member Removal Handler', () => {
     mockTeamsCollection.findOne.mockResolvedValue(mockTeam);
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
 
-    const eventWithPendingInvite = {
-      ...mockEvent,
-      body: {
-        ...mockEvent.body,
-        member_emails: ['invited@test.com'],
-      },
-    };
+    const eventWithPendingInvite = createEvent({
+      ...mockEventData,
+      member_emails: ['invited@test.com'],
+    }, '/teams/member-removal', 'POST');
 
-    const result = await main(eventWithPendingInvite);
+    const result = await main(eventWithPendingInvite, mockContext);
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
@@ -238,15 +239,12 @@ describe('Teams Member Removal Handler', () => {
     mockUsersCollection.findOne.mockResolvedValue(mockLeaderUser);
     mockTeamsCollection.findOne.mockResolvedValue(mockTeam);
 
-    const eventWithLeaderRemoval = {
-      ...mockEvent,
-      body: {
-        ...mockEvent.body,
-        member_emails: ['leader@test.com', 'member1@test.com'],
-      },
-    };
+    const eventWithLeaderRemoval = createEvent({
+      ...mockEventData,
+      member_emails: ['leader@test.com', 'member1@test.com'],
+    }, '/teams/member-removal', 'POST');
 
-    const result = await main(eventWithLeaderRemoval);
+    const result = await main(eventWithLeaderRemoval, mockContext);
 
     expect(result.statusCode).toBe(400);
     const body = JSON.parse(result.body);
@@ -271,15 +269,12 @@ describe('Teams Member Removal Handler', () => {
     mockTeamsCollection.updateOne.mockResolvedValue({ acknowledged: true });
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
 
-    const eventWithNonexistentUser = {
-      ...mockEvent,
-      body: {
-        ...mockEvent.body,
-        member_emails: ['nonexistent@test.com', 'member1@test.com'],
-      },
-    };
+    const eventWithNonexistentUser = createEvent({
+      ...mockEventData,
+      member_emails: ['nonexistent@test.com', 'member1@test.com'],
+    }, '/teams/member-removal', 'POST');
 
-    const result = await main(eventWithNonexistentUser);
+    const result = await main(eventWithNonexistentUser, mockContext);
 
     expect(result.statusCode).toBe(200);
     const body = JSON.parse(result.body);
@@ -294,7 +289,8 @@ describe('Teams Member Removal Handler', () => {
   it('should handle database errors gracefully', async () => {
     mockUsersCollection.findOne.mockRejectedValue(new Error('Database error'));
 
-    const result = await main(mockEvent);
+    const databaseErrorEvent = createEvent(mockEventData, '/teams/member-removal', 'POST');
+    const result = await main(databaseErrorEvent, mockContext);
 
     expect(result.statusCode).toBe(500);
     const body = JSON.parse(result.body);
