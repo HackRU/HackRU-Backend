@@ -7,7 +7,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'teams-join',
+        path: 'teams/join',
         cors: true,
         request: {
           schemas: {
