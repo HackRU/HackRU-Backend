@@ -96,6 +96,74 @@ export async function generatePresignedUrl(bucketName: string, objectKey: string
   return url;
 }
 
+export async function userExistsLogic(
+  authEmail: string,
+  authToken: string,
+  lookupEmail: string
+): Promise<{ statusCode: number; body: string }> {
+  // token check
+  const isValidToken = validateToken(authToken, process.env.JWT_SECRET!, authEmail);
+  if (!isValidToken) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({
+        statusCode: 401,
+        message: 'Unauthorized',
+      }),
+    };
+  }
+
+  try {
+    // connect + grab users
+    const db = MongoDB.getInstance(process.env.MONGO_URI!);
+    await db.connect();
+    const users = db.getCollection('users');
+
+    // auth user exists?
+    const authUser = await users.findOne({ email: authEmail });
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Auth user not found.',
+        }),
+      };
+    }
+
+    // lookup user exists?
+    const lookupUser = await users.findOne(
+      { email: lookupEmail.toLowerCase() },
+      { projection: { password: 0, _id: 0 } }
+    );
+    if (!lookupUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Look-up user was not found',
+        }),
+      };
+    }
+
+    // all good
+    return {
+      statusCode: 200,
+      body: JSON.stringify('User exists'),
+    };
+  } catch (error) {
+    console.error('Error reading user:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal server error.',
+        error,
+      }),
+    };
+  }
+}
+
 export interface UserDoc {
   first_name: string;
   last_name: string;
