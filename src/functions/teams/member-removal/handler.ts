@@ -4,41 +4,8 @@ import schema from './schema';
 import { MongoDB, validateToken } from '../../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+import { UserDocument, TeamDocument } from '../../../types';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
-// TODO: Remove this when the teams/join endpoint is implemented
-export interface TeamInvite {
-  team_id: string;
-  invited_by: string;
-  invited_at: Date;
-  team_name: string;
-}
-
-// TODO: Remove this when the teams/join endpoint is implemented
-export interface UserTeamInfo {
-  team_id: string | null;
-  role: 'leader' | 'member' | null;
-  pending_invites: TeamInvite[];
-}
-
-// TODO: Remove this when the teams/join endpoint is implemented
-export interface UserDocument {
-  email: string;
-  confirmed_team?: boolean;
-  team_info?: UserTeamInfo;
-  [key: string]: unknown;
-}
-
-// TODO: Remove this when the teams/join endpoint is implemented
-export interface TeamDocument {
-  team_id: string;
-  leader_email: string;
-  members: string[];
-  status: 'Active' | 'Disbanded';
-  team_name: string;
-  created: Date;
-  updated: Date;
-}
 
 const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
