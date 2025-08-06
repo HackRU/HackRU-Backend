@@ -1,4 +1,4 @@
-import { main } from '../src/functions/teams-join/handler';
+import { main } from '../src/functions/teams/join/handler';
 import { createEvent, mockContext } from './helper';
 import * as util from '../src/util';
 
