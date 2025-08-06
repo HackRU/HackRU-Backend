@@ -5,20 +5,21 @@ import { middyfy } from '@libs/lambda';
 
 import schema from './schema';
 
-import { MongoDB, validateToken } from '../../util';
+import { MongoDB, validateToken } from '../../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 //import * as jwt from 'jsonwebtoken';
+import type { UserDocument } from '../../../types';
 
 const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
-  const { team_id } = event.body;
-  const auth_email = event.body.auth_email.toLowerCase();
+  const { teamId } = event.body;
+  const authEmail = event.body.authEmail.toLowerCase();
 
   // try to validate token
   try {
-    const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, auth_email);
+    const isValidToken = validateToken(event.body.authToken, process.env.JWT_SECRET, authEmail);
     if (!isValidToken) {
       return {
         statusCode: 401,
@@ -31,10 +32,10 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
 
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const users = db.getCollection('users');
+    const users = db.getCollection<UserDocument>('users');
 
-    // find the user 
-    const user = await users.findOne({ email: auth_email });
+    // find the user
+    const user = await users.findOne({ email: authEmail });
     if (!user) {
       return {
         statusCode: 404,
@@ -45,10 +46,11 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
       };
     }
 
-    // get the user's pending invites list 
-    const pending_invitations = user.team_info?.pending_invites || [];
-    const team_id_invite = pending_invitations.some((invite: any) => invite.team_id === team_id);
-    if (!team_id_invite) { // if that team's invite is NOT in the pending invites list
+    // get the user's pending invites list
+    const pendingInvitations = user.team_info?.pending_invites || [];
+    const teamIdInvite = pendingInvitations.some((invite) => invite.team_id === teamId);
+    if (!teamIdInvite) {
+      // if that team's invite is NOT in the pending invites list
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -59,13 +61,11 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
     }
 
     //remove that invite from pending invitations list
-    const updatedInvites = pending_invitations.filter((invite: any) => invite.team_id !== team_id);
-    await users.updateOne(
-      { email: auth_email },
-      { $set: { 'team_info.pending_invites': updatedInvites } }
-    );
+    const updatedInvites = pendingInvitations.filter((invite) => invite.team_id !== teamId);
+    await users.updateOne({ email: authEmail }, { $set: { 'team_info.pending_invites': updatedInvites } });
 
-    return { // successful response body
+    return {
+      // successful response body
       statusCode: 200,
       body: JSON.stringify({
         statusCode: 200,

@@ -1,4 +1,4 @@
-import { main } from '../src/functions/teams-decline-invite/handler';
+import { main } from '../src/functions/teams/decline-invite/handler';
 import { createEvent, mockContext } from './helper';
 import * as util from '../src/util';
 
@@ -17,7 +17,7 @@ jest.mock('../src/util', () => ({
 }));
 
 describe('Decline Team Invite endpoint', () => {
-  const path = '/teams-decline-invite';
+  const path = '/teams/decline-invite';
   const httpMethod = 'POST';
   const mockCallback = jest.fn();
 
@@ -27,7 +27,7 @@ describe('Decline Team Invite endpoint', () => {
   });
 
   it('returns 401 for invalid auth token', async () => {
-    const userData = { auth_email: 'test@example.com', auth_token: 'invalidToken', team_id: 'team123' };
+    const userData = { authEmail: 'test@example.com', authToken: 'invalidToken', teamId: 'team123' };
     const event = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(false);
 
@@ -38,7 +38,7 @@ describe('Decline Team Invite endpoint', () => {
   });
 
   it('returns 404 if user is not found', async () => {
-    const userData = { auth_email: 'notfound@example.com', auth_token: 'validToken', team_id: 'team123' };
+    const userData = { authEmail: 'notfound@example.com', authToken: 'validToken', teamId: 'team123' };
     const event = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOne = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
@@ -51,7 +51,7 @@ describe('Decline Team Invite endpoint', () => {
   });
 
   it('returns 400 if invite does not exist', async () => {
-    const userData = { auth_email: 'test@example.com', auth_token: 'validToken', team_id: 'team123' };
+    const userData = { authEmail: 'test@example.com', authToken: 'validToken', teamId: 'team123' };
     const event = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOne = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
@@ -64,7 +64,7 @@ describe('Decline Team Invite endpoint', () => {
   });
 
   it('declines invite and returns 200', async () => {
-    const userData = { auth_email: 'test@example.com', auth_token: 'validToken', team_id: 'team123' };
+    const userData = { authEmail: 'test@example.com', authToken: 'validToken', teamId: 'team123' };
     const event = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const collection = util.MongoDB.getInstance('uri').getCollection('users');
@@ -84,7 +84,7 @@ describe('Decline Team Invite endpoint', () => {
   });
 
   it('returns 500 on internal server error', async () => {
-    const userData = { auth_email: 'test@example.com', auth_token: 'validToken', team_id: 'team123' };
+    const userData = { authEmail: 'test@example.com', authToken: 'validToken', team_id: 'team123' };
     const event = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOne = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;

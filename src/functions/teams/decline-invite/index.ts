@@ -7,7 +7,7 @@ export default {
     {
       http: {
         method: 'post',
-        path: 'teams-decline-invite',
+        path: 'teams/decline-invite',
         cors: true,
         request: {
           schemas: {
