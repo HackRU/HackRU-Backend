@@ -96,4 +96,3 @@ describe('Decline Team Invite endpoint', () => {
     expect(JSON.parse(res.body).message).toBe('Internal Server Error');
   });
 });
-
