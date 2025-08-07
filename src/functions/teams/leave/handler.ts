@@ -1,9 +1,10 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
-import { MongoDB, validateToken, UserDoc, TeamDoc } from '../../../util';
+import { MongoDB, validateToken, UserDoc, TeamDoc, teamsDisband } from '../../../util'; //change to actual disband
 import * as path from 'path';
 import * as dotenv from 'dotenv';
+
 //import fetch from 'node-fetch';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -64,7 +65,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     }
     
     // 7. Check if user is in team
-    if (!team.members.includes(authUser.email)) {
+    if (!team.members.includes(auth_email)) {
       return{
         statusCode: 400,
         body: JSON.stringify({statusCode:400, message: 'User not in team'})
@@ -76,26 +77,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
 
     // 8. Check if user is team lead
     if(teamInfo.role == "leader"){
-      const response = await fetch("http://localhost:3000/teams/disband",{
-      method: "POST",
-      headers:{
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(
-        {
-          auth_token: auth_token,
-          auth_email: auth_email,
-          team_id: team_id
-        }
-      )
-      })
-      
-      const data = await response.json() as { message: string }; 
-
-      return{
-        statusCode: response.status,
-        body: JSON.stringify({statusCode:response.status, message:data.message})
-      }
+      return await teamsDisband(auth_token, auth_email, team_id); //mocked function replace with right funtion name 
     }
 
 
@@ -111,10 +93,13 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     
 
     // 10. clear team_info and set confirmed_team
+
     authUser.confirmed_team = false 
-    teamInfo.team_id = ""
-    teamInfo.role = ""
-    teamInfo.pending_invites = []
+    authUser.team_info = {
+      team_id: "",
+      role: "",
+      pending_invites: []
+    };
 
     // 11. update the mondoDB user
     await users.updateOne(
