@@ -12,7 +12,7 @@ describe('teamLeave Lambda',()=>{
     
     beforeEach(()=>{
 
-        //mock validToken
+        // mock validToken fail
         (validateToken as jest.Mock).mockReturnValue(true);
 
         (teamsDisband as unknown as jest.Mock) = jest.fn();
@@ -23,7 +23,7 @@ describe('teamLeave Lambda',()=>{
         });
         
 
-        //mock user info
+        //  mock user info
         mockUsers = 
         {
             findOne: jest.fn(),
@@ -46,7 +46,7 @@ describe('teamLeave Lambda',()=>{
 
     });
 
-    // 1. check for invalid volidToken
+    // Case 1:  invalid volidToken
     it('returns 401 if token is invalid', async () => {
         const userData = {
           auth_token: 'token',
@@ -66,7 +66,7 @@ describe('teamLeave Lambda',()=>{
     });
 
 
-    // 3. Disbanded team
+    // Case 2: Team already Disbanded 
     it('return 400 disbanded team', async() => {
         const userData = {
             auth_token: 'token',
@@ -102,7 +102,7 @@ describe('teamLeave Lambda',()=>{
         expect(JSON.parse(result.body).message).toBe("Team already disbanded"); 
     })
 
-    //empty team
+    // Case 3: memeber list is empty
     it('return 400 empty team', async() => {
         const userData = {
             auth_token: 'token',
@@ -138,7 +138,7 @@ describe('teamLeave Lambda',()=>{
         expect(JSON.parse(result.body).message).toBe('Empty team member list'); 
     })
 
-    // not in the team
+    // Case 4: member not in the team
     it('return 400 user not in team', async() => {
         const userData = {
             auth_token: 'token',
@@ -175,7 +175,7 @@ describe('teamLeave Lambda',()=>{
     })
 
 
-    // team leader leaves
+    // Case 5: team lead leaves 
     it('return 200 team lead leaves', async() => {
         const userData = {
             auth_token: 'token',
@@ -209,6 +209,42 @@ describe('teamLeave Lambda',()=>{
         const result = await main(mockEvent, mockContext, mockCallback)
         expect(result.statusCode).toBe(200);
         expect(JSON.parse(result.body).message).toBe("Mocked up function"); 
+    })
+
+    // Case 6: Success
+    it('return 200 success', async() => {
+        const userData = {
+            auth_token: 'token',
+            auth_email: 'leader@gmail.com',
+            team_id: 'team123',
+        };
+
+        const mockEvent = createEvent(userData, path, httpMethod);
+        const mockCallback = jest.fn();
+
+        mockUsers.findOne.mockResolvedValue(
+        {
+            confirmed_team: false,
+            team_info:{
+                team_id: "team1234",
+                role: "member",
+                pending_invites: [{},{}]
+            }
+        }
+        );
+        mockTeams.findOne.mockResolvedValue(
+        {
+            team_id: "team1234",
+            leader_email: "leader@gmail.com",
+            members: ["leader@gmail.com"],
+            status: "Active",
+            created: "dateCreated",
+            updated: "dateUpdated"
+        }
+        )
+        const result = await main(mockEvent, mockContext, mockCallback)
+        expect(result.statusCode).toBe(200);
+        expect(JSON.parse(result.body).message).toBe("Successfully left team"); 
     })
 
 })
