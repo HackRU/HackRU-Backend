@@ -20,6 +20,7 @@ import verifyEmail from '@functions/verify-email';
 import deleteUser from '@functions/delete';
 import userExists from '@functions/user-exists';
 import interestForm from '@functions/interest-form';
+import teamsCreate from '@functions/teams/create';
 import teamsJoin from '@functions/teams/join';
 
 import * as path from 'path';
@@ -67,6 +68,7 @@ const serverlessConfiguration: AWS = {
     deleteUser,
     userExists,
     interestForm,
+    teamsCreate,
     teamsJoin,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
