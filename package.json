@@ -4,7 +4,10 @@
   "description": "Backend system for HackRU.",
   "main": "serverless.ts",
   "scripts": {
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "tests": "npx jest tests/ --config=tests/jest.config.ts",
+    "eslint": "npx eslint --fix .",
+    "prettier": "npx prettier --write ."
   },
   "engines": {
     "node": ">=14.15.0"

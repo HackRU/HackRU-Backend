@@ -12,7 +12,6 @@ const mockTeamsCollection = {
 };
 
 jest.mock('../src/util', () => ({
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   MongoDB: {
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
@@ -20,7 +19,7 @@ jest.mock('../src/util', () => ({
       getCollection: jest.fn().mockImplementation((name: string) => {
         if (name === 'users') return mockUsersCollection;
         if (name === 'teams') return mockTeamsCollection;
-        return mockUsersCollection;
+        return null;
       }),
     }),
   },
@@ -63,7 +62,7 @@ describe('/teams/read endpoint', () => {
 
   it('should reject when auth user not found', async () => {
     validateTokenMock.mockReturnValue(true);
-    usersFindOneMock.mockReturnValueOnce(null);
+    usersFindOneMock.mockResolvedValueOnce(null);
 
     const mockEvent = createEvent(
       {
@@ -84,7 +83,7 @@ describe('/teams/read endpoint', () => {
   it("should reject unauthorized access to another user's team", async () => {
     validateTokenMock.mockReturnValue(true);
 
-    usersFindOneMock.mockReturnValueOnce({
+    usersFindOneMock.mockResolvedValueOnce({
       email: 'user@test.com',
       role: { hacker: true },
       team_info: { team_id: 'user-team-id' },
@@ -109,13 +108,13 @@ describe('/teams/read endpoint', () => {
   it('should reject when team not found', async () => {
     validateTokenMock.mockReturnValue(true);
 
-    usersFindOneMock.mockReturnValueOnce({
+    usersFindOneMock.mockResolvedValueOnce({
       email: 'user@test.com',
       role: { hacker: true },
       team_info: { team_id: 'test-team-id' },
     });
 
-    teamsFindOneMock.mockReturnValueOnce(null);
+    teamsFindOneMock.mockResolvedValueOnce(null);
 
     const mockEvent = createEvent(
       {
@@ -136,13 +135,13 @@ describe('/teams/read endpoint', () => {
   it('should reject when team is not active', async () => {
     validateTokenMock.mockReturnValue(true);
 
-    usersFindOneMock.mockReturnValueOnce({
+    usersFindOneMock.mockResolvedValueOnce({
       email: 'user@test.com',
       role: { hacker: true },
       team_info: { team_id: 'test-team-id' },
     });
 
-    teamsFindOneMock.mockReturnValueOnce({
+    teamsFindOneMock.mockResolvedValueOnce({
       team_id: 'test-team-id',
       status: 'Inactive',
     });
@@ -166,13 +165,13 @@ describe('/teams/read endpoint', () => {
   it('should return team details successfully', async () => {
     validateTokenMock.mockReturnValue(true);
 
-    usersFindOneMock.mockReturnValueOnce({
+    usersFindOneMock.mockResolvedValueOnce({
       email: 'user@test.com',
       role: { hacker: true },
       team_info: { team_id: 'test-team-id' },
     });
 
-    teamsFindOneMock.mockReturnValueOnce({
+    teamsFindOneMock.mockResolvedValueOnce({
       team_id: 'test-team-id',
       status: 'Active',
       members: ['user@test.com', 'member2@test.com'],
@@ -195,23 +194,23 @@ describe('/teams/read endpoint', () => {
     const body = JSON.parse(result.body);
     expect(body.message).toBe('Successfully read team');
     expect(body.team).toBeDefined();
-    expect(JSON.parse(body.team).team_id).toBe('test-team-id');
+    expect(body.team.team_id).toBe('test-team-id');
   });
 
   it('should fetch team details using member_email', async () => {
     validateTokenMock.mockReturnValue(true);
 
     usersFindOneMock
-      .mockReturnValueOnce({
+      .mockResolvedValueOnce({
         email: 'organizer@test.com',
         role: { organizer: true },
       })
-      .mockReturnValueOnce({
+      .mockResolvedValueOnce({
         email: 'member@test.com',
         team_info: { team_id: 'test-team-id' },
       });
 
-    teamsFindOneMock.mockReturnValueOnce({
+    teamsFindOneMock.mockResolvedValueOnce({
       team_id: 'test-team-id',
       status: 'Active',
       members: ['member@test.com', 'member2@test.com'],
@@ -234,6 +233,6 @@ describe('/teams/read endpoint', () => {
     const body = JSON.parse(result.body);
     expect(body.message).toBe('Successfully read team');
     expect(body.team).toBeDefined();
-    expect(JSON.parse(body.team).team_id).toBe('test-team-id');
+    expect(body.team.team_id).toBe('test-team-id');
   });
 });

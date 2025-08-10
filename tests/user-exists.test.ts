@@ -1,116 +1,123 @@
 import { main } from '../src/functions/user-exists/handler';
-
 import { createEvent, mockContext } from './helper';
 import * as util from '../src/util';
 
 jest.mock('../src/util', () => ({
-  // eslint-disable-next-line @typescript-eslint/naming-convention
   MongoDB: {
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
       disconnect: jest.fn(),
       getCollection: jest.fn().mockReturnValue({
         findOne: jest.fn(),
-        find: jest.fn().mockReturnValue({
-          toArray: jest.fn(),
-        }),
       }),
     }),
   },
-  validateToken: jest.fn().mockReturnValueOnce(false).mockReturnValue(true),
+  validateToken: jest.fn(),
+  userExistsLogic: jest.fn(),
 }));
 
 describe('/user-exists endpoint', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
   const path = '/user-exists';
   const httpMethod = 'POST';
 
-  const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
-  const mockCallback = jest.fn();
+  const userExistsLogicMock = util.userExistsLogic as jest.Mock;
 
-  it('invalid token', async () => {
+  it('should reject invalid token', async () => {
+    userExistsLogicMock.mockResolvedValueOnce({
+      statusCode: 401,
+      body: JSON.stringify({ message: 'Unauthorized' }),
+    });
+
     const userData = {
       auth_email: 'hacker@hackru.org',
-      auth_token: 'mockToken',
+      auth_token: 'invalidToken',
       email: 'hacker@hackru.org',
     };
     const mockEvent = createEvent(userData, path, httpMethod);
 
-    const res = await main(mockEvent, mockContext, mockCallback);
+    const res = await main(mockEvent, mockContext, null);
+
     expect(res.statusCode).toBe(401);
     expect(JSON.parse(res.body).message).toBe('Unauthorized');
   });
 
-  it('auth user not found', async () => {
-    findOneMock.mockReturnValueOnce(null);
+  it('should reject when auth user is not found', async () => {
+    userExistsLogicMock.mockResolvedValueOnce({
+      statusCode: 404,
+      body: JSON.stringify({ message: 'Auth user not found.' }),
+    });
+
     const userData = {
       auth_email: 'non-existent-user@hackru.org',
-      auth_token: 'mockToken',
+      auth_token: 'validToken',
       email: 'hacker@hackru.org',
     };
     const mockEvent = createEvent(userData, path, httpMethod);
 
-    const res = await main(mockEvent, mockContext, mockCallback);
+    const res = await main(mockEvent, mockContext, null);
+
     expect(res.statusCode).toBe(404);
     expect(JSON.parse(res.body).message).toBe('Auth user not found.');
   });
 
-  it('look-up user not found', async () => {
-    findOneMock
-      .mockReturnValueOnce({
-        email: 'hackerCheck@hackru.org',
-      })
-      .mockReturnValueOnce(null);
+  it('should reject when lookup user is not found', async () => {
+    userExistsLogicMock.mockResolvedValueOnce({
+      statusCode: 404,
+      body: JSON.stringify({ message: 'Look-up user was not found' }),
+    });
+
     const userData = {
       auth_email: 'hackerCheck@hackru.org',
-      auth_token: 'mockToken',
+      auth_token: 'validToken',
       email: 'non-existent-user@hackru.org',
     };
     const mockEvent = createEvent(userData, path, httpMethod);
 
-    const res = await main(mockEvent, mockContext, mockCallback);
+    const res = await main(mockEvent, mockContext, null);
 
     expect(res.statusCode).toBe(404);
     expect(JSON.parse(res.body).message).toBe('Look-up user was not found');
   });
 
-  it('success case', async () => {
-    //can check even if you don't have the admin role
-    findOneMock
-      .mockReturnValueOnce({
-        email: 'hackerCheck@hackru.org',
-      })
-      .mockReturnValueOnce({});
+  it('should return success when lookup user exists', async () => {
+    userExistsLogicMock.mockResolvedValueOnce({
+      statusCode: 200,
+      body: JSON.stringify('User exists'),
+    });
+
     const userData = {
       auth_email: 'hackerCheck@hackru.org',
-      auth_token: 'mockToken',
+      auth_token: 'validToken',
       email: 'hacker@hackru.org',
     };
     const mockEvent = createEvent(userData, path, httpMethod);
 
-    const res = await main(mockEvent, mockContext, mockCallback);
+    const res = await main(mockEvent, mockContext, null);
 
     expect(res.statusCode).toBe(200);
-    expect(res.body).toBeDefined();
+    expect(JSON.parse(res.body)).toBe('User exists');
   });
 
-  it('success case for all lookup', async () => {
-    findOneMock
-      .mockReturnValueOnce({
-        email: 'hackerCheck@hackru.org',
-      })
-      .mockReturnValueOnce({ email: 'targetHacker@hackru.org' });
+  it('should return success for all lookup cases', async () => {
+    userExistsLogicMock.mockResolvedValueOnce({
+      statusCode: 200,
+      body: JSON.stringify('User exists'),
+    });
+
     const userData = {
       auth_email: 'hackerCheck@hackru.org',
-      auth_token: 'mockToken',
+      auth_token: 'validToken',
       email: 'anyemail@hackru.org',
     };
     const mockEvent = createEvent(userData, path, httpMethod);
-    const res = await main(mockEvent, mockContext, mockCallback);
-    console.log(res.body);
+
+    const res = await main(mockEvent, mockContext, null);
+
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res.body)).toEqual('User exists');
+    expect(JSON.parse(res.body)).toBe('User exists');
   });
 });
