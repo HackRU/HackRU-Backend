@@ -20,6 +20,7 @@ import verifyEmail from '@functions/verify-email';
 import deleteUser from '@functions/delete';
 import userExists from '@functions/user-exists';
 import interestForm from '@functions/interest-form';
+import memberRemoval from '@functions/teams/member-removal';
 import declineInvitation from '@functions/teams/decline-invite';
 import teamsJoin from '@functions/teams/join';
 import teamsRead from '@functions/teams/read';
@@ -69,6 +70,7 @@ const serverlessConfiguration: AWS = {
     deleteUser,
     userExists,
     interestForm,
+    memberRemoval,
     declineInvitation,
     teamsJoin,
     teamsRead,
