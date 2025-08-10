@@ -21,6 +21,7 @@ import deleteUser from '@functions/delete';
 import userExists from '@functions/user-exists';
 import interestForm from '@functions/interest-form';
 import teamsJoin from '@functions/teams/join';
+import teamsRead from '@functions/teams/read';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -68,6 +69,7 @@ const serverlessConfiguration: AWS = {
     userExists,
     interestForm,
     teamsJoin,
+    teamsRead,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
