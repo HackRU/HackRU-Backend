@@ -19,4 +19,6 @@ export { default as delete } from './delete';
 export { default as userExists } from './user-exists';
 export { default as interestForm } from './interest-form';
 export { default as teamsMemberRemoval } from './teams/member-removal';
+export { default as declineInvitation } from './teams/decline-invite';
 export { default as teamsJoin } from './teams/join';
+export { default as teamsRead } from './teams/read';

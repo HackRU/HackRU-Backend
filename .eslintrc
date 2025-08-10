@@ -113,37 +113,23 @@
       },
       {
         "selector": [
-          "classProperty",
-          "objectLiteralProperty",
           "typeProperty",
-          "classMethod",
-          "objectLiteralMethod",
-          "typeMethod",
-          "accessor",
-          "enumMember"
+          "objectLiteralProperty"
         ],
         "format": [
           "camelCase",
           "snake_case",
           "UPPER_CASE",
           "PascalCase"
-        ]
+        ],
+        "leadingUnderscore": "allow"
       },
       {
-        "selector": [
-          "classProperty",
-          "objectLiteralProperty",
-          "typeProperty",
-          "classMethod",
-          "objectLiteralMethod",
-          "typeMethod",
-          "accessor",
-          "enumMember"
-        ],
-        "format": null,
+        "selector": "objectLiteralProperty",
         "modifiers": [
           "requiresQuotes"
-        ]
+        ],
+        "format": null
       },
       {
         "selector": "objectLiteralProperty",
