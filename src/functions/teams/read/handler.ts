@@ -114,7 +114,7 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       body: JSON.stringify({
         statusCode: 200,
         message: 'Successfully read team',
-        team: JSON.stringify(team),
+        team,
       }),
     };
   } catch (error) {
