@@ -113,29 +113,23 @@
       },
       {
         "selector": [
-          "typeProperty"
+          "typeProperty",
+          "objectLiteralProperty"
         ],
         "format": [
           "camelCase",
           "snake_case",
           "UPPER_CASE",
           "PascalCase"
-        ]
-      },
-      {
-        "selector": "objectLiteralProperty",
-        "format": [
-          "camelCase",
-          "snake_case"
         ],
         "leadingUnderscore": "allow"
       },
       {
         "selector": "objectLiteralProperty",
-        "format": null,
         "modifiers": [
-          "requireQuotes"
-        ]
+          "requiresQuotes"
+        ],
+        "format": null
       },
       {
         "selector": "objectLiteralProperty",
