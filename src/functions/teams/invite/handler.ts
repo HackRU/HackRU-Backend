@@ -15,11 +15,18 @@ interface Failure {
   reason: string;
 }
 
+interface PendingInvite {
+  team_id: string;
+  invited_by: string;
+  invited_at: Date;
+}
+
 const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
-  const { auth_token, auth_email, team_id, emails } = event.body;
+  // Alias snake_case request fields to camelCase locals to satisfy naming-convention
+  const { auth_token: authToken, auth_email: authEmail, team_id: teamId, emails } = event.body;
 
   // auth check
-  if (!validateToken(auth_token, process.env.JWT_SECRET!, auth_email)) {
+  if (!validateToken(authToken, process.env.JWT_SECRET!, authEmail)) {
     return {
       statusCode: 401,
       body: JSON.stringify({ message: 'Unauthorized' }),
@@ -34,7 +41,7 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
   const teams = db.getCollection('teams');
 
   // verify auth user
-  const authUser = await users.findOne({ email: auth_email });
+  const authUser = await users.findOne({ email: authEmail });
   if (!authUser) {
     return {
       statusCode: 404,
@@ -43,14 +50,14 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
   }
 
   // verify team & leadership
-  const team = await teams.findOne({ team_id });
+  const team = await teams.findOne({ team_id: teamId });
   if (!team) {
     return {
       statusCode: 404,
       body: JSON.stringify({ message: 'Team not found' }),
     };
   }
-  if (team.leader_email !== auth_email) {
+  if (team.leader_email !== authEmail) {
     return {
       statusCode: 403,
       body: JSON.stringify({ message: 'Auth user is not the team leader' }),
@@ -60,7 +67,7 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
   // capacity check
   const confirmedCount = Array.isArray(team.members) ? team.members.length : 0;
   const pendingCount = await users.countDocuments({
-    'team_info.pending_invites.team_id': team_id,
+    'team_info.pending_invites.team_id': teamId,
   });
   const availableSlots = MAX_TEAM_SIZE - confirmedCount - pendingCount;
   if (availableSlots <= 0) {
@@ -87,7 +94,7 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
         }
 
         // check user exists via util
-        const { statusCode: uxStatus } = await userExistsLogic(auth_email, auth_token, email);
+        const { statusCode: uxStatus } = await userExistsLogic(authEmail, authToken, email);
         if (uxStatus !== 200) {
           failed.push({ email, reason: 'User does not exist or unauthorized' });
           continue;
@@ -106,9 +113,9 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
           continue;
         }
 
-        // prevent duplicate invites
-        const pending = user.team_info?.pending_invites ?? [];
-        if (pending.some((inv: any) => inv.team_id === team_id)) {
+        // prevent duplicate invites (type the pending list instead of using any)
+        const pending = (user.team_info?.pending_invites ?? []) as PendingInvite[];
+        if (pending.some((inv) => inv.team_id === teamId)) {
           failed.push({ email, reason: 'Already invited to this team' });
           continue;
         }
@@ -119,10 +126,10 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
           {
             $push: {
               'team_info.pending_invites': {
-                team_id,
-                invited_by: auth_email,
+                team_id: teamId,
+                invited_by: authEmail,
                 invited_at: new Date(),
-              },
+              } as PendingInvite,
             },
           },
           { session }
@@ -131,8 +138,8 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
       }
     });
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error('Transaction aborted:', err);
-    // if the transaction as a whole fails, treat everyone as failed
     return {
       statusCode: 500,
       body: JSON.stringify({
@@ -140,10 +147,9 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
       }),
     };
   } finally {
-    session.endSession();
+    await session.endSession();
   }
 
-  // return success
   return {
     statusCode: 200,
     body: JSON.stringify({

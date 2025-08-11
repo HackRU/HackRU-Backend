@@ -1,11 +1,10 @@
-// tests/functions/teams/invite/handler.test.ts
 import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { main } from '../src/functions/teams/invite/handler';
 import { createEvent, mockContext } from './helper';
 import { MongoDB, validateToken, userExistsLogic } from '../src/util';
 
-jest.mock('../../../../src/util', () => {
-  const original = jest.requireActual('../../../../src/util');
+jest.mock('../src/util', () => {
+  const original = jest.requireActual('../src/util');
   return {
     ...original,
     validateToken: jest.fn(),
@@ -15,6 +14,27 @@ jest.mock('../../../../src/util', () => {
     },
   };
 });
+
+// minimal typed shapes for our jest-mocked collections/clients
+type UsersCol = {
+  findOne: jest.Mock;
+  countDocuments: jest.Mock;
+  updateOne: jest.Mock;
+};
+
+type TeamsCol = {
+  findOne: jest.Mock;
+};
+
+type ClientMock = {
+  startSession: jest.Mock;
+};
+
+type DbMock = {
+  connect: jest.Mock;
+  getClient: jest.Mock;
+  getCollection: jest.Mock;
+};
 
 describe('POST /teams/invite handler', () => {
   const path = '/teams/invite';
@@ -26,10 +46,10 @@ describe('POST /teams/invite handler', () => {
     emails: ['alice@example.com', 'bob@example.com'],
   };
 
-  let mockUsers: any;
-  let mockTeams: any;
-  let mockClient: any;
-  let mockDb: any;
+  let mockUsers: UsersCol;
+  let mockTeams: TeamsCol;
+  let mockClient: ClientMock & { startSession: jest.Mock };
+  let mockDb: DbMock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -46,9 +66,12 @@ describe('POST /teams/invite handler', () => {
     mockTeams = {
       findOne: jest.fn(),
     };
+
+    const session = { withTransaction: (fn: (s?: unknown) => unknown) => fn(), endSession: jest.fn() };
     mockClient = {
-      startSession: jest.fn().mockReturnValue({ withTransaction: (fn: any) => fn(), endSession: jest.fn() }),
-    };
+      startSession: jest.fn().mockReturnValue(session),
+    } as unknown as ClientMock & { startSession: jest.Mock };
+
     mockDb = {
       connect: jest.fn(),
       getClient: jest.fn().mockReturnValue(mockClient),
@@ -62,7 +85,7 @@ describe('POST /teams/invite handler', () => {
   it('returns 401 if token invalid', async () => {
     (validateToken as jest.Mock).mockReturnValue(false);
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn()); // no-empty-function → use jest.fn()
 
     expect(res.statusCode).toBe(401);
     expect(JSON.parse(res.body)).toEqual({ message: 'Unauthorized' });
@@ -71,7 +94,7 @@ describe('POST /teams/invite handler', () => {
   it('returns 404 if auth user not found', async () => {
     mockUsers.findOne.mockResolvedValueOnce(null);
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn());
 
     expect(mockUsers.findOne).toHaveBeenCalledWith({ email: 'leader@example.com' });
     expect(res.statusCode).toBe(404);
@@ -79,11 +102,10 @@ describe('POST /teams/invite handler', () => {
   });
 
   it('returns 404 if team not found', async () => {
-    // authUser exists
     mockUsers.findOne.mockResolvedValueOnce({ email: 'leader@example.com' });
     mockTeams.findOne.mockResolvedValueOnce(null);
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn());
 
     expect(mockTeams.findOne).toHaveBeenCalledWith({ team_id: 'team123' });
     expect(res.statusCode).toBe(404);
@@ -92,9 +114,13 @@ describe('POST /teams/invite handler', () => {
 
   it('returns 403 if caller is not leader', async () => {
     mockUsers.findOne.mockResolvedValueOnce({ email: 'leader@example.com' });
-    mockTeams.findOne.mockResolvedValueOnce({ team_id: 'team123', leader_email: 'other@example.com', members: [] });
+    mockTeams.findOne.mockResolvedValueOnce({
+      team_id: 'team123',
+      leader_email: 'other@example.com',
+      members: [],
+    });
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn());
 
     expect(res.statusCode).toBe(403);
     expect(JSON.parse(res.body)).toEqual({ message: 'Auth user is not the team leader' });
@@ -107,39 +133,37 @@ describe('POST /teams/invite handler', () => {
       leader_email: 'leader@example.com',
       members: ['a', 'b', 'c', 'd'],
     });
-    // 4 confirmed, so pendingCount=0 → availableSlots = 4-4-0 = 0
     mockUsers.countDocuments.mockResolvedValueOnce(0);
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn());
 
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body)).toEqual({ message: 'Team is already full' });
   });
 
   it('processes invites: alice success, bob fails userExists', async () => {
-    // setup: leader exists, team has space
     mockUsers.findOne.mockResolvedValueOnce({ email: 'leader@example.com' });
-    mockTeams.findOne.mockResolvedValueOnce({ team_id: 'team123', leader_email: 'leader@example.com', members: [] });
+    mockTeams.findOne.mockResolvedValueOnce({
+      team_id: 'team123',
+      leader_email: 'leader@example.com',
+      members: [],
+    });
     mockUsers.countDocuments.mockResolvedValueOnce(0);
 
-    // userExistsLogic: alice ok, bob 404
     (userExistsLogic as jest.Mock)
       .mockResolvedValueOnce({ statusCode: 200, body: '"User exists"' })
       .mockResolvedValueOnce({ statusCode: 404, body: '{}' });
 
-    // for alice: findOne returns user record
     mockUsers.findOne.mockResolvedValueOnce({
       email: 'alice@example.com',
       confirmed_team: false,
       team_info: { pending_invites: [] },
     });
-    // for bob: we'd skip loading since userExistsLogic already failed
 
-    // capture updateOne for alice
     mockUsers.updateOne.mockResolvedValueOnce({});
 
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn());
 
     const body = JSON.parse(res.body);
     expect(res.statusCode).toBe(200);
@@ -165,16 +189,24 @@ describe('POST /teams/invite handler', () => {
 
   it('rolls back and returns 500 if transaction throws', async () => {
     mockUsers.findOne.mockResolvedValueOnce({ email: 'leader@example.com' });
-    mockTeams.findOne.mockResolvedValueOnce({ team_id: 'team123', leader_email: 'leader@example.com', members: [] });
+    mockTeams.findOne.mockResolvedValueOnce({
+      team_id: 'team123',
+      leader_email: 'leader@example.com',
+      members: [],
+    });
     mockUsers.countDocuments.mockResolvedValueOnce(0);
 
-    // simulate txn error
-    mockClient.startSession().withTransaction = jest.fn().mockImplementation(() => {
-      throw new Error('Txn failed');
-    });
+    // force txn error
+    const badSession = {
+      withTransaction: () => {
+        throw new Error('Txn failed');
+      },
+      endSession: jest.fn(),
+    };
+    (mockClient.startSession as jest.Mock).mockReturnValueOnce(badSession);
 
     const ev = createEvent(baseBody, path, method);
-    const res = await main(ev, mockContext, () => {});
+    const res = await main(ev, mockContext, jest.fn());
 
     expect(res.statusCode).toBe(500);
     expect(JSON.parse(res.body)).toEqual({
