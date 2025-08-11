@@ -16,25 +16,25 @@ jest.mock('../src/util', () => {
 });
 
 // minimal typed shapes for our jest-mocked collections/clients
-type UsersCol = {
+interface UsersCol {
   findOne: jest.Mock;
   countDocuments: jest.Mock;
   updateOne: jest.Mock;
-};
+}
 
-type TeamsCol = {
+interface TeamsCol {
   findOne: jest.Mock;
-};
+}
 
-type ClientMock = {
+interface ClientMock {
   startSession: jest.Mock;
-};
+}
 
-type DbMock = {
+interface DbMock {
   connect: jest.Mock;
   getClient: jest.Mock;
   getCollection: jest.Mock;
-};
+}
 
 describe('POST /teams/invite handler', () => {
   const path = '/teams/invite';
