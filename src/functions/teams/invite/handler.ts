@@ -4,22 +4,12 @@ import * as path from 'path';
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
+import type { Failure, TeamInvite, TeamDocument, UserDocument } from '../../../types';
 import { MongoDB, validateToken, userExistsLogic } from '../../../util';
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const MAX_TEAM_SIZE = 4;
-
-interface Failure {
-  email: string;
-  reason: string;
-}
-
-interface PendingInvite {
-  team_id: string;
-  invited_by: string;
-  invited_at: Date;
-}
 
 const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   // Alias snake_case request fields to camelCase locals to satisfy naming-convention
@@ -37,8 +27,8 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
   const db = MongoDB.getInstance(process.env.MONGO_URI!);
   await db.connect();
   const client = db.getClient();
-  const users = db.getCollection('users');
-  const teams = db.getCollection('teams');
+  const users = db.getCollection<UserDocument>('users');
+  const teams = db.getCollection<TeamDocument>('teams');
 
   // verify auth user
   const authUser = await users.findOne({ email: authEmail });
@@ -64,8 +54,16 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
     };
   }
 
+  // check team status
+  if (team.status !== 'Active') {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Team is not active' }),
+    };
+  }
+
   // capacity check
-  const confirmedCount = Array.isArray(team.members) ? team.members.length : 0;
+  const confirmedCount = (Array.isArray(team.members) ? team.members.length : 0) + 1; // + 1 for the leader
   const pendingCount = await users.countDocuments({
     'team_info.pending_invites.team_id': teamId,
   });
@@ -114,7 +112,7 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
         }
 
         // prevent duplicate invites (type the pending list instead of using any)
-        const pending = (user.team_info?.pending_invites ?? []) as PendingInvite[];
+        const pending = (user.team_info?.pending_invites ?? []) as TeamInvite[];
         if (pending.some((inv) => inv.team_id === teamId)) {
           failed.push({ email, reason: 'Already invited to this team' });
           continue;
@@ -129,7 +127,8 @@ const teamInvite: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
                 team_id: teamId,
                 invited_by: authEmail,
                 invited_at: new Date(),
-              } as PendingInvite,
+                team_name: team.team_name,
+              } as TeamInvite,
             },
           },
           { session }

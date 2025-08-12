@@ -5,6 +5,11 @@ export interface TeamInvite {
   team_name: string;
 }
 
+export interface Failure {
+  email: string;
+  reason: string;
+}
+
 export interface UserTeamInfo {
   team_id: string | null;
   role: 'leader' | 'member' | null;
