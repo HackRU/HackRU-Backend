@@ -269,7 +269,7 @@ export async function disbandTeam(
       }),
     };
   } catch (error) {
-    console.error('Error reading team:', error);
+    console.error('Error in team disbandment:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({
