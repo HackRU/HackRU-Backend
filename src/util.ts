@@ -238,16 +238,17 @@ export async function disbandTeam(
 
     //clear team_info object for members
     team.members.forEach(async (member_email) => {
-      const memberUser = await users.findOne({ email: member_email });
-      memberUser.team_info.team_id = null;
-      memberUser.team_info.role = null;
-      memberUser.confirmed_team = false;
+      await users.updateOne(
+        { email: member_email },
+        { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } as any }
+      );
     });
 
     //clear leader's team info
-    authUser.team_info.team_id = null;
-    authUser.team_info.role = null;
-    authUser.confirmed_team = false;
+    await users.updateOne(
+      { email: auth_email },
+      { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } as any }
+    );
 
     const invitations_removed = (await users.find({ 'team_info.pending_invites.team_id': team_id }).toArray()).length;
     const members_affected = team.members.length;
