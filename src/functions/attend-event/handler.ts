@@ -4,7 +4,8 @@ import { middyfy } from '@libs/lambda';
 
 import schema from './schema';
 
-import { MongoDB, validateToken, ensureRoles, UserDoc } from '../../util';
+import { MongoDB, validateToken, ensureRoles } from '../../util';
+import type { UserDocument } from 'src/types';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -26,7 +27,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     // Connect to MongoDB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const users = db.getCollection<UserDoc>('users');
+    const users = db.getCollection<UserDocument>('users');
 
     const attendEvent = await users.findOne({ email: event.body.qr });
 
