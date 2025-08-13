@@ -5,7 +5,6 @@ import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { NONAME } from 'dns';
 import { UserDocument, TeamDocument } from './types';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -204,9 +203,9 @@ export async function disbandTeam(
     //verify authUser is team leader
     if (!(authUser.team_info.role == 'leader')) {
       return {
-        statusCode: 404,
+        statusCode: 403,
         body: JSON.stringify({
-          statusCode: 404,
+          statusCode: 403,
           message: 'Auth user not leader.',
         }),
       };
@@ -237,29 +236,32 @@ export async function disbandTeam(
     }
 
     //clear team_info object for members
-    team.members.forEach(async (member_email) => {
+    for (const member_email of team.members) {
       await users.updateOne(
         { email: member_email },
-        { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } as any }
+        { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } }
       );
-    });
+    }
 
     //clear leader's team info
     await users.updateOne(
       { email: auth_email },
-      { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } as any }
+      { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } }
     );
 
     const invitations_removed = (await users.find({ 'team_info.pending_invites.team_id': team_id }).toArray()).length;
     const members_affected = team.members.length;
 
     //remove pending invites from all users
-    users.updateMany({ 'team_info.pending_invites.team_id': team_id }, {
-      $pull: { 'team_info.pending_invites': { team_id: team_id } },
-    } as any);
+    await users.updateMany(
+      { 'team_info.pending_invites.team_id': team_id },
+      {
+        $pull: { 'team_info.pending_invites': { team_id: team_id } },
+      }
+    );
 
     //update teams object
-    teams.updateOne({ team_id: team_id }, { $set: { status: 'Disbanded', updated: new Date() } });
+    await teams.updateOne({ team_id: team_id }, { $set: { status: 'Disbanded', updated: new Date() } });
 
     return {
       statusCode: 200,
