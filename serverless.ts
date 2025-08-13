@@ -9,6 +9,7 @@ import discord from '@functions/discord';
 import read from '@functions/read';
 import waiver from '@functions/waiver';
 import resume from '@functions/resume';
+import teamsInvite from '@functions/teams/invite';
 import resetPassword from '@functions/reset-password';
 import forgotPassword from '@functions/forgot-password';
 import leaderboard from '@functions/leaderboard';
@@ -57,6 +58,7 @@ const serverlessConfiguration: AWS = {
     attendEvent,
     waiver,
     resume,
+    teamsInvite,
     read,
     discord,
     forgotPassword,
