@@ -41,7 +41,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     // Check if user already leads a team
-    if (authUser.team_info && authUser.team_info.role === 'leader') {
+    if (authUser.team_info?.role === 'leader') {
       return {
         statusCode: 400,
         body: JSON.stringify({
