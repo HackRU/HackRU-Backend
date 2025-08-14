@@ -1,7 +1,7 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
-import { MongoDB, validateToken } from '../../../util';
+import { MongoDB, validateToken, teamInviteLogic } from '../../../util';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -143,7 +143,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     const teamDoc = {
       team_id: teamId,
       leader_email: event.body.auth_email.toLowerCase(),
-      members: [], // Start empty, members join via accept-invite
+      members: [],
       status: 'Active' as const,
       team_name: event.body.team_name,
       created: new Date(),
@@ -168,61 +168,12 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       }
     );
 
-    // Send invitations to all members via team-invite endpoint
+    // Send invitations to all members via teamInviteLogic utility
     try {
-      // Call team-invite endpoint to send invitations
-      const invitePayload = {
-        auth_token: event.body.auth_token,
-        auth_email: event.body.auth_email,
-        team_id: teamId,
-        emails: memberEmails,
-      };
+      const inviteResult = await teamInviteLogic(event.body.auth_email, event.body.auth_token, teamId, memberEmails);
 
-      // TODO: Replace with actual /team-invite endpoint call
-      // For now, we will just log the payload to simulate the call
-      console.log('Would call team-invite endpoint with:', invitePayload);
-
-      // TODO: Remove this when real endpoint exists. For now, simulate successful invitation (remove this when real endpoint exists)
-      // This is temporary placeholder logic until team-invite endpoint is implemented
-      for (const email of memberEmails) {
-        const user = await users.findOne({ email: email });
-
-        const newInvite: TeamInvite = {
-          team_id: teamId,
-          invited_by: event.body.auth_email.toLowerCase(),
-          invited_at: new Date(),
-          team_name: event.body.team_name,
-        };
-
-        // Initialize team_info if it doesn't exist, then add invitation
-        if (!user?.team_info) {
-          await users.updateOne(
-            { email: email },
-            {
-              $set: {
-                team_info: {
-                  team_id: null,
-                  role: null,
-                  pending_invites: [newInvite],
-                },
-                confirmed_team: false,
-              },
-            }
-          );
-        } else {
-          // Add invitation to existing team_info
-          const existingInvites = user.team_info.pending_invites || [];
-          await users.updateOne(
-            { email: email },
-            {
-              $set: {
-                'team_info.pending_invites': [...existingInvites, newInvite],
-              },
-            }
-          );
-        }
-      }
-      // TODO: End of temporary placeholder logic
+      if (inviteResult.statusCode !== 200)
+        throw new Error(`Team invite failed with status ${inviteResult.statusCode}: ${inviteResult.body}`);
     } catch (inviteError) {
       console.error('Failed to send team invitations:', inviteError);
 
