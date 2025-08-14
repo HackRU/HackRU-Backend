@@ -41,7 +41,10 @@ describe('Teams Create Handler', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     validateTokenMock.mockReturnValue(true);
-    teamInviteLogicMock.mockResolvedValue({ statusCode: 200, body: JSON.stringify({ message: 'Invitations sent successfully' }) });
+    teamInviteLogicMock.mockResolvedValue({
+      statusCode: 200,
+      body: JSON.stringify({ message: 'Invitations sent successfully' }),
+    });
     mockDbInstance.connect.mockResolvedValue(undefined);
     mockTeamsCollection.insertOne.mockResolvedValue({ acknowledged: true });
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
@@ -107,12 +110,10 @@ describe('Teams Create Handler', () => {
     );
 
     // Verify invitations were sent
-    expect(teamInviteLogicMock).toHaveBeenCalledWith(
-      'leader@test.com',
-      'valid-token',
-      expect.any(String),
-      ['member1@test.com', 'member2@test.com']
-    );
+    expect(teamInviteLogicMock).toHaveBeenCalledWith('leader@test.com', 'valid-token', expect.any(String), [
+      'member1@test.com',
+      'member2@test.com',
+    ]);
   });
 
   it('should return 401 for invalid token', async () => {
@@ -226,9 +227,9 @@ describe('Teams Create Handler', () => {
       .mockResolvedValueOnce(mockMemberUser); // member2@test.com lookup
 
     // Make invitation logic fail
-    teamInviteLogicMock.mockResolvedValue({ 
-      statusCode: 500, 
-      body: JSON.stringify({ message: 'Failed to send invitations' }) 
+    teamInviteLogicMock.mockResolvedValue({
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Failed to send invitations' }),
     });
 
     const mockEvent = createEvent(mockEventData, '/teams/create', 'POST');
