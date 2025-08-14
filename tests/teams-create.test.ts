@@ -59,7 +59,7 @@ describe('Teams Create Handler', () => {
     mockTeamsCollection.insertOne.mockResolvedValue({ acknowledged: true });
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
     mockTeamsCollection.deleteOne.mockResolvedValue({ acknowledged: true });
-    
+
     // Mock transaction to execute the callback immediately
     mockSession.withTransaction.mockImplementation(async (callback) => {
       return await callback();
@@ -259,7 +259,7 @@ describe('Teams Create Handler', () => {
 
     // Verify transaction was attempted
     expect(mockSession.withTransaction).toHaveBeenCalled();
-    
+
     // Verify session cleanup
     expect(mockSession.endSession).toHaveBeenCalled();
 

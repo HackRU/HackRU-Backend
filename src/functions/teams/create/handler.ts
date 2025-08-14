@@ -33,7 +33,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         }),
       };
     }
-    
+
     if (teamName.length > 50) {
       return {
         statusCode: 400,
@@ -43,7 +43,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         }),
       };
     }
-    
+
     // Check for invalid characters (only allow alphanumeric, spaces, hyphens, underscores)
     const validNamePattern = /^[a-zA-Z0-9\s\-_]+$/;
     if (!validNamePattern.test(teamName)) {
@@ -157,7 +157,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     // Use MongoDB transaction for atomic team creation
     const session = db.getClient().startSession();
-    
+
     try {
       await session.withTransaction(async () => {
         // Create team within transaction
@@ -182,9 +182,8 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         // Send invitations to all members via teamInviteLogic utility
         const inviteResult = await teamInviteLogic(event.body.auth_email, event.body.auth_token, teamId, memberEmails);
 
-        if (inviteResult.statusCode !== 200) 
+        if (inviteResult.statusCode !== 200)
           throw new Error(`Team invite failed with status ${inviteResult.statusCode}: ${inviteResult.body}`);
-        
       });
     } catch (transactionError) {
       console.error('Transaction failed:', transactionError);
