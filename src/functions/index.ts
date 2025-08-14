@@ -22,4 +22,4 @@ export { default as teamsMemberRemoval } from './teams/member-removal';
 export { default as declineInvitation } from './teams/decline-invite';
 export { default as teamsJoin } from './teams/join';
 export { default as teamsRead } from './teams/read';
-export { default as teams } from './teams/disband';
+export { default as teamsDisband } from './teams/disband';
