@@ -25,6 +25,7 @@ import memberRemoval from '@functions/teams/member-removal';
 import declineInvitation from '@functions/teams/decline-invite';
 import teamsJoin from '@functions/teams/join';
 import teamsRead from '@functions/teams/read';
+import disband from '@functions/teams/disband';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -76,6 +77,7 @@ const serverlessConfiguration: AWS = {
     declineInvitation,
     teamsJoin,
     teamsRead,
+    disband,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
