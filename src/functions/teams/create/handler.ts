@@ -2,40 +2,11 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { MongoDB, validateToken, teamInviteLogic } from '../../../util';
+import { UserDocument, TeamDocument } from 'src/types';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
-interface TeamInvite {
-  team_id: string;
-  invited_by: string;
-  invited_at: Date;
-  team_name: string;
-}
-
-interface UserTeamInfo {
-  team_id: string | null;
-  role: 'leader' | 'member' | null;
-  pending_invites: TeamInvite[];
-}
-
-interface UserDocument {
-  email: string;
-  confirmed_team?: boolean;
-  team_info?: UserTeamInfo;
-  [key: string]: unknown;
-}
-
-interface TeamDocument {
-  team_id: string;
-  leader_email: string;
-  members: string[];
-  status: 'Active' | 'Disbanded';
-  team_name: string;
-  created: Date;
-  updated: Date;
-}
 
 const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
