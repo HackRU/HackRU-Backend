@@ -22,6 +22,40 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     }
 
+    // Validate team name
+    const teamName = event.body.team_name.trim();
+    if (teamName.length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Team name cannot be empty',
+        }),
+      };
+    }
+    
+    if (teamName.length > 50) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Team name cannot exceed 50 characters',
+        }),
+      };
+    }
+    
+    // Check for invalid characters (only allow alphanumeric, spaces, hyphens, underscores)
+    const validNamePattern = /^[a-zA-Z0-9\s\-_]+$/;
+    if (!validNamePattern.test(teamName)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Team name can only contain letters, numbers, spaces, hyphens, and underscores',
+        }),
+      };
+    }
+
     // Connect to database
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
@@ -116,55 +150,54 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       leader_email: event.body.auth_email.toLowerCase(),
       members: [],
       status: 'Active' as const,
-      team_name: event.body.team_name,
+      team_name: teamName,
       created: new Date(),
       updated: new Date(),
     };
 
-    // Create team
-    await teams.insertOne(teamDoc);
-
-    // Update leader's user document
-    await users.updateOne(
-      { email: event.body.auth_email.toLowerCase() },
-      {
-        $set: {
-          confirmed_team: true,
-          team_info: {
-            team_id: teamId,
-            role: 'leader' as const,
-            pending_invites: [],
-          },
-        },
-      }
-    );
-
-    // Send invitations to all members via teamInviteLogic utility
+    // Use MongoDB transaction for atomic team creation
+    const session = db.getClient().startSession();
+    
     try {
-      const inviteResult = await teamInviteLogic(event.body.auth_email, event.body.auth_token, teamId, memberEmails);
+      await session.withTransaction(async () => {
+        // Create team within transaction
+        await teams.insertOne(teamDoc, { session });
 
-      if (inviteResult.statusCode !== 200)
-        throw new Error(`Team invite failed with status ${inviteResult.statusCode}: ${inviteResult.body}`);
-    } catch (inviteError) {
-      console.error('Failed to send team invitations:', inviteError);
+        // Update leader's user document within transaction
+        await users.updateOne(
+          { email: event.body.auth_email.toLowerCase() },
+          {
+            $set: {
+              confirmed_team: true,
+              team_info: {
+                team_id: teamId,
+                role: 'leader' as const,
+                pending_invites: [],
+              },
+            },
+          },
+          { session }
+        );
 
-      // Clean up: delete the team since invitations failed
-      await teams.deleteOne({ team_id: teamId });
-      await users.updateOne(
-        { email: event.body.auth_email.toLowerCase() },
-        {
-          $unset: { team_info: '', confirmed_team: '' },
-        }
-      );
+        // Send invitations to all members via teamInviteLogic utility
+        const inviteResult = await teamInviteLogic(event.body.auth_email, event.body.auth_token, teamId, memberEmails);
 
+        if (inviteResult.statusCode !== 200) 
+          throw new Error(`Team invite failed with status ${inviteResult.statusCode}: ${inviteResult.body}`);
+        
+      });
+    } catch (transactionError) {
+      console.error('Transaction failed:', transactionError);
       return {
         statusCode: 500,
         body: JSON.stringify({
           statusCode: 500,
-          message: 'Team created but failed to send invitations',
-          error: inviteError.message,
+          message: 'Failed to create team',
+          error: transactionError.message,
         }),
       };
+    } finally {
+      await session.endSession();
     }
 
     return {

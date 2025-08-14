@@ -1,4 +1,13 @@
 // External mock objects created before jest.mock()
+const mockSession = {
+  withTransaction: jest.fn(),
+  endSession: jest.fn(),
+};
+
+const mockClient = {
+  startSession: jest.fn(() => mockSession),
+};
+
 const mockUsersCollection = {
   findOne: jest.fn(),
   updateOne: jest.fn(),
@@ -14,6 +23,7 @@ const mockTeamsCollection = {
 
 const mockDbInstance = {
   connect: jest.fn(),
+  getClient: jest.fn(() => mockClient),
   getCollection: jest.fn((name: string) => {
     if (name === 'users') return mockUsersCollection;
     if (name === 'teams') return mockTeamsCollection;
@@ -49,6 +59,12 @@ describe('Teams Create Handler', () => {
     mockTeamsCollection.insertOne.mockResolvedValue({ acknowledged: true });
     mockUsersCollection.updateOne.mockResolvedValue({ acknowledged: true });
     mockTeamsCollection.deleteOne.mockResolvedValue({ acknowledged: true });
+    
+    // Mock transaction to execute the callback immediately
+    mockSession.withTransaction.mockImplementation(async (callback) => {
+      return await callback();
+    });
+    mockSession.endSession.mockResolvedValue(undefined);
   });
 
   const mockEventData = {
@@ -92,7 +108,8 @@ describe('Teams Create Handler', () => {
         team_name: 'Test Team',
         members: [],
         status: 'Active',
-      })
+      }),
+      expect.objectContaining({ session: mockSession })
     );
 
     // Verify leader update
@@ -106,7 +123,8 @@ describe('Teams Create Handler', () => {
             pending_invites: [],
           }),
         },
-      }
+      },
+      expect.objectContaining({ session: mockSession })
     );
 
     // Verify invitations were sent
@@ -219,7 +237,7 @@ describe('Teams Create Handler', () => {
     expect(body.message).toBe('Team size cannot exceed 4 members (including leader)');
   });
 
-  it('should clean up team when invitation sending fails', async () => {
+  it('should rollback transaction when invitation sending fails', async () => {
     // Setup successful validation
     mockUsersCollection.findOne
       .mockResolvedValueOnce(mockLeaderUser) // Auth user lookup
@@ -237,18 +255,15 @@ describe('Teams Create Handler', () => {
 
     expect(result.statusCode).toBe(500);
     const body = JSON.parse(result.body);
-    expect(body.message).toBe('Team created but failed to send invitations');
+    expect(body.message).toBe('Failed to create team');
 
-    // Verify cleanup: team should be deleted
-    expect(mockTeamsCollection.deleteOne).toHaveBeenCalledWith(
-      expect.objectContaining({ team_id: expect.any(String) })
-    );
+    // Verify transaction was attempted
+    expect(mockSession.withTransaction).toHaveBeenCalled();
+    
+    // Verify session cleanup
+    expect(mockSession.endSession).toHaveBeenCalled();
 
-    // Verify cleanup: leader's team info should be removed
-    expect(mockUsersCollection.updateOne).toHaveBeenCalledWith(
-      { email: 'leader@test.com' },
-      { $unset: { team_info: '', confirmed_team: '' } }
-    );
+    // No manual cleanup needed since transaction handles rollback automatically
   });
 
   it('should handle database errors gracefully', async () => {
@@ -284,7 +299,8 @@ describe('Teams Create Handler', () => {
     expect(mockTeamsCollection.insertOne).toHaveBeenCalledWith(
       expect.objectContaining({
         leader_email: 'leader@test.com', // Should be lowercase
-      })
+      }),
+      expect.objectContaining({ session: mockSession })
     );
 
     // Verify invitations are sent with lowercase emails
@@ -293,6 +309,76 @@ describe('Teams Create Handler', () => {
       'valid-token',
       expect.any(String),
       ['member1@test.com', 'member2@test.com'] // Should be lowercase
+    );
+  });
+
+  it('should return 400 for empty team name', async () => {
+    const emptyNameData = {
+      ...mockEventData,
+      team_name: '   ', // Just whitespace
+    };
+
+    const mockEvent = createEvent(emptyNameData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Team name cannot be empty');
+  });
+
+  it('should return 400 for team name exceeding 50 characters', async () => {
+    const longNameData = {
+      ...mockEventData,
+      team_name: 'A'.repeat(51), // 51 characters
+    };
+
+    const mockEvent = createEvent(longNameData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Team name cannot exceed 50 characters');
+  });
+
+  it('should return 400 for team name with invalid characters', async () => {
+    const invalidNameData = {
+      ...mockEventData,
+      team_name: 'Team@Name!', // Contains @ and !
+    };
+
+    const mockEvent = createEvent(invalidNameData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Team name can only contain letters, numbers, spaces, hyphens, and underscores');
+  });
+
+  it('should accept valid team name with allowed characters', async () => {
+    const validNameData = {
+      ...mockEventData,
+      team_name: 'Team_Name-123 Valid', // Valid characters
+    };
+
+    // Mock user lookups for validation
+    mockUsersCollection.findOne
+      .mockResolvedValueOnce(mockLeaderUser) // Auth user lookup
+      .mockResolvedValueOnce(mockMemberUser) // member1@test.com lookup
+      .mockResolvedValueOnce(mockMemberUser); // member2@test.com lookup
+
+    const mockEvent = createEvent(validNameData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Team created successfully');
+
+    // Verify team creation uses trimmed name
+    expect(mockTeamsCollection.insertOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        team_name: 'Team_Name-123 Valid',
+      }),
+      expect.objectContaining({ session: mockSession })
     );
   });
 });
