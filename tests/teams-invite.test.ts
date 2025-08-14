@@ -4,13 +4,16 @@ import { main } from '../src/functions/teams/invite/handler';
 import { createEvent, mockContext } from './helper';
 import { teamInviteLogic } from '../src/util';
 
-// Tell Jest to replace the util module with a mock that exports teamInviteLogic
+// tell Jest to replace the util module with a mock that exports teamInviteLogic
 jest.mock('../src/util', () => ({
   teamInviteLogic: jest.fn(),
 }));
 
-// Type the mocked function
-type TeamInviteResp = { statusCode: number; body: string };
+interface TeamInviteResp {
+  statusCode: number;
+  body: string;
+}
+
 const mockTeamInvite = teamInviteLogic as unknown as jest.MockedFunction<
   (authEmail: string, authToken: string, teamId: string, emails: string[]) => Promise<TeamInviteResp>
 >;
