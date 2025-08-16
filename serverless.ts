@@ -21,6 +21,7 @@ import verifyEmail from '@functions/verify-email';
 import deleteUser from '@functions/delete';
 import userExists from '@functions/user-exists';
 import interestForm from '@functions/interest-form';
+import teamsCreate from '@functions/teams/create';
 import memberRemoval from '@functions/teams/member-removal';
 import declineInvitation from '@functions/teams/decline-invite';
 import teamsJoin from '@functions/teams/join';
@@ -73,6 +74,7 @@ const serverlessConfiguration: AWS = {
     deleteUser,
     userExists,
     interestForm,
+    teamsCreate,
     memberRemoval,
     declineInvitation,
     teamsJoin,

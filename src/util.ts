@@ -6,7 +6,6 @@ import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { UserDocument, TeamDocument } from './types';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
