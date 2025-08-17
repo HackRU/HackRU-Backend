@@ -178,13 +178,22 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
           },
           { session }
         );
-
-        // Send invitations to all members via teamInviteLogic utility
-        const inviteResult = await teamInviteLogic(event.body.auth_email, event.body.auth_token, teamId, memberEmails);
-
-        if (inviteResult.statusCode !== 200)
-          throw new Error(`Team invite failed with status ${inviteResult.statusCode}: ${inviteResult.body}`);
       });
+
+      // Send invitations to all members after transaction commits
+      const inviteResult = await teamInviteLogic(event.body.auth_email, event.body.auth_token, teamId, memberEmails);
+
+      if (inviteResult.statusCode !== 200) {
+        // Clean up: delete the team since invitations failed
+        await teams.deleteOne({ team_id: teamId });
+        await users.updateOne(
+          { email: event.body.auth_email.toLowerCase() },
+          {
+            $unset: { team_info: 1, confirmed_team: 1 },
+          }
+        );
+        throw new Error(`Team invite failed with status ${inviteResult.statusCode}: ${inviteResult.body}`);
+      }
     } catch (transactionError) {
       console.error('Transaction failed:', transactionError);
       return {
