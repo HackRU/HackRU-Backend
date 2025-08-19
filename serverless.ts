@@ -82,6 +82,7 @@ const serverlessConfiguration: AWS = {
     teamsRead,
     disband,
     teamLeave
+    
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {

@@ -1,7 +1,10 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
-import { MongoDB, validateToken, ensureRoles, UserDoc } from '../../util';
+
+import { MongoDB, validateToken, ensureRoles } from '../../util';
+import type { UserDocument } from 'src/types';
+
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 
@@ -24,7 +27,7 @@ const deleteUser: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (eve
     // 2. Connect to MongoDB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const users = db.getCollection<UserDoc>('users');
+    const users = db.getCollection<UserDocument>('users');
 
     // 3. Check target user exists
     const target = await users.findOne({ email: user_email });

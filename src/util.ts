@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import { MongoClient } from 'mongodb';
+import { UserDocument, TeamInvite, TeamDocument, Failure } from './types';
 import type { Document } from 'mongodb';
 import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import * as path from 'path';
+import * as dotenv from 'dotenv';
 
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 // cache connection so only one copy is used
 export class MongoDB {
   private static instance: MongoDB;
@@ -96,6 +100,341 @@ export async function generatePresignedUrl(bucketName: string, objectKey: string
   return url;
 }
 
+export async function userExistsLogic(
+  authEmail: string,
+  authToken: string,
+  lookupEmail: string
+): Promise<{ statusCode: number; body: string }> {
+  // token check
+  const isValidToken = validateToken(authToken, process.env.JWT_SECRET!, authEmail);
+  if (!isValidToken) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({
+        statusCode: 401,
+        message: 'Unauthorized',
+      }),
+    };
+  }
+
+  try {
+    // connect + grab users
+    const db = MongoDB.getInstance(process.env.MONGO_URI!);
+    await db.connect();
+    const users = db.getCollection('users');
+
+    // auth user exists?
+    const authUser = await users.findOne({ email: authEmail });
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Auth user not found.',
+        }),
+      };
+    }
+
+    // lookup user exists?
+    const lookupUser = await users.findOne(
+      { email: lookupEmail.toLowerCase() },
+      { projection: { password: 0, _id: 0 } }
+    );
+    if (!lookupUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Look-up user was not found',
+        }),
+      };
+    }
+
+    // all good
+    return {
+      statusCode: 200,
+      body: JSON.stringify('User exists'),
+    };
+  } catch (error) {
+    console.error('Error reading user:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal server error.',
+        error,
+      }),
+    };
+  }
+}
+
+export async function teamInviteLogic(
+  authEmail: string,
+  authToken: string,
+  teamId: string,
+  emails: string[]
+): Promise<{ statusCode: number; body: string }> {
+  const MAX_TEAM_SIZE = 4;
+
+  // auth check
+  if (!validateToken(authToken, process.env.JWT_SECRET!, authEmail)) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({ message: 'Unauthorized' }),
+    };
+  }
+
+  // DB setup
+  const db = MongoDB.getInstance(process.env.MONGO_URI!);
+  await db.connect();
+  const client = db.getClient();
+  const users = db.getCollection<UserDocument>('users');
+  const teams = db.getCollection<TeamDocument>('teams');
+
+  // verify auth user
+  const authUser = await users.findOne({ email: authEmail });
+  if (!authUser) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ message: 'Auth user not found' }),
+    };
+  }
+
+  // verify team & leadership
+  const team = await teams.findOne({ team_id: teamId });
+  if (!team) {
+    return {
+      statusCode: 404,
+      body: JSON.stringify({ message: 'Team not found' }),
+    };
+  }
+  if (team.leader_email !== authEmail) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ message: 'Auth user is not the team leader' }),
+    };
+  }
+
+  // check team status
+  if (team.status !== 'Active') {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Team is not active' }),
+    };
+  }
+
+  // capacity check
+  const confirmedCount = (Array.isArray(team.members) ? team.members.length : 0) + 1; // + 1 for the leader
+  const pendingCount = await users.countDocuments({
+    'team_info.pending_invites.team_id': teamId,
+  });
+  const availableSlots = MAX_TEAM_SIZE - confirmedCount - pendingCount;
+  if (availableSlots <= 0) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ message: 'Team is already full' }),
+    };
+  }
+
+  const invited: string[] = [];
+  const failed: Failure[] = [];
+
+  // use a transaction for all updates
+  const session = client.startSession();
+  try {
+    await session.withTransaction(async () => {
+      const uniqueEmails = Array.from(new Set(emails));
+
+      for (const email of uniqueEmails) {
+        // stop when no slots remain
+        if (invited.length >= availableSlots) {
+          failed.push({ email, reason: 'No slots remaining' });
+          continue;
+        }
+
+        // check user exists via util
+        const { statusCode: uxStatus } = await userExistsLogic(authEmail, authToken, email);
+        if (uxStatus !== 200) {
+          failed.push({ email, reason: 'User does not exist or unauthorized' });
+          continue;
+        }
+
+        // load user within transaction
+        const user = await users.findOne({ email }, { session });
+        if (!user) {
+          failed.push({ email, reason: 'User record not found' });
+          continue;
+        }
+
+        // prevent users already on a team
+        if (user.confirmed_team) {
+          failed.push({ email, reason: 'Already a confirmed team member' });
+          continue;
+        }
+
+        // prevent duplicate invites (type the pending list instead of using any)
+        const pending = (user.team_info?.pending_invites ?? []) as TeamInvite[];
+        if (pending.some((inv) => inv.team_id === teamId)) {
+          failed.push({ email, reason: 'Already invited to this team' });
+          continue;
+        }
+
+        // all checks pass -> enqueue invite
+        await users.updateOne(
+          { email },
+          {
+            $push: {
+              'team_info.pending_invites': {
+                team_id: teamId,
+                invited_by: authEmail,
+                invited_at: new Date(),
+                team_name: team.team_name,
+              } as TeamInvite,
+            },
+          },
+          { session }
+        );
+        invited.push(email);
+      }
+    });
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.error('Transaction aborted:', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        message: 'Internal server error during invitation processing',
+      }),
+    };
+  } finally {
+    await session.endSession();
+  }
+
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: 'Invitations sent successfully',
+      invited,
+      failed,
+    }),
+  };
+}
+
+export async function disbandTeam(
+  auth_token: string,
+  auth_email: string,
+  team_id: string
+): Promise<{ statusCode: number; body: string }> {
+  // token check
+  const isValidToken = validateToken(auth_token, process.env.JWT_SECRET!, auth_email);
+  if (!isValidToken) {
+    return {
+      statusCode: 401,
+      body: JSON.stringify({
+        statusCode: 401,
+        message: 'Unauthorized',
+      }),
+    };
+  }
+  try {
+    //db connection + users collection
+    const db = MongoDB.getInstance(process.env.MONGO_URI);
+    await db.connect();
+    const users = db.getCollection<UserDocument>('users');
+
+    const authUser = await users.findOne({ email: auth_email });
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Auth user not found.',
+        }),
+      };
+    }
+    //verify authUser is team leader
+    if (!(authUser.team_info.role == 'leader')) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({
+          statusCode: 403,
+          message: 'Auth user not leader.',
+        }),
+      };
+    }
+    //get teams collection
+    const teams = db.getCollection<TeamDocument>('teams');
+
+    //verify team exists and is not already disbanded
+    const team = await teams.findOne({ team_id: team_id });
+    if (!team) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Team does not exist',
+        }),
+      };
+    }
+
+    if (team.status == 'Disbanded') {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'Team already disbanded.',
+        }),
+      };
+    }
+
+    //clear team_info object for members
+    for (const member_email of team.members) {
+      await users.updateOne(
+        { email: member_email },
+        { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } }
+      );
+    }
+
+    //clear leader's team info
+    await users.updateOne(
+      { email: auth_email },
+      { $set: { 'team_info.team_id': null, 'team_info.role': null, confirmed_team: false } }
+    );
+
+    const invitations_removed = (await users.find({ 'team_info.pending_invites.team_id': team_id }).toArray()).length;
+    const members_affected = team.members.length;
+
+    //remove pending invites from all users
+    await users.updateMany(
+      { 'team_info.pending_invites.team_id': team_id },
+      {
+        $pull: { 'team_info.pending_invites': { team_id: team_id } },
+      }
+    );
+
+    //update teams object
+    await teams.updateOne({ team_id: team_id }, { $set: { status: 'Disbanded', updated: new Date() } });
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Team disbanded successfully',
+        members_affected: members_affected,
+        invitations_removed: invitations_removed,
+      }),
+    };
+  } catch (error) {
+    console.error('Error in team disbandment:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal server error.',
+        error: error.message,
+      }),
+    };
+  }
+}
 export interface UserDoc {
   first_name: string;
   last_name: string;
