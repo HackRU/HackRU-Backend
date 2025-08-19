@@ -1,5 +1,6 @@
 import { main } from '../src/functions/teams/leave/handler';
 import { validateToken, MongoDB, disbandTeam } from '../src/util';
+import { UserDocument, TeamDocument } from '../src/types';
 import { createEvent, mockContext } from './helper';
 
 jest.mock('../src/util');
@@ -7,8 +8,14 @@ jest.mock('../src/util');
 describe('teamLeave Lambda', () => {
   const path = '/teams/leave';
   const httpMethod = 'POST';
-  let mockUsers: any;
-  let mockTeams: any;
+
+  type MockCollection<T> = {
+    findOne: jest.Mock<Promise<Partial<T> | null>, any>;
+    updateOne: jest.Mock<Promise<any>, any>;
+  };
+
+  let mockUsers: MockCollection<UserDocument>;
+  let mockTeams: MockCollection<TeamDocument>;
 
   beforeEach(() => {
     (validateToken as jest.Mock).mockReturnValue(true);
@@ -76,7 +83,10 @@ describe('teamLeave Lambda', () => {
       team_info: {
         team_id: 'team1234',
         role: 'leader',
-        pending_invites: [{}, {}],
+        pending_invites: [
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+        ],
       },
     });
     mockTeams.findOne.mockResolvedValue({
@@ -84,8 +94,8 @@ describe('teamLeave Lambda', () => {
       leader_email: 'leader@gmail.com',
       members: [],
       status: 'Disbanded',
-      created: 'dateCreated',
-      updated: 'dateUpdated',
+      created: new Date(),
+      updated: new Date(),
     });
     const result = await main(mockEvent, mockContext, mockCallback);
     expect(result.statusCode).toBe(400);
@@ -108,7 +118,10 @@ describe('teamLeave Lambda', () => {
       team_info: {
         team_id: 'team1234',
         role: 'leader',
-        pending_invites: [{}, {}],
+        pending_invites: [
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+        ],
       },
     });
     mockTeams.findOne.mockResolvedValue({
@@ -116,8 +129,8 @@ describe('teamLeave Lambda', () => {
       leader_email: 'leader@gmail.com',
       members: [],
       status: 'Active',
-      created: 'dateCreated',
-      updated: 'dateUpdated',
+      created: new Date(),
+      updated: new Date(),
     });
     const result = await main(mockEvent, mockContext, mockCallback);
     expect(result.statusCode).toBe(400);
@@ -140,7 +153,10 @@ describe('teamLeave Lambda', () => {
       team_info: {
         team_id: 'team1234',
         role: 'leader',
-        pending_invites: [{}, {}],
+        pending_invites: [
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+        ],
       },
     });
     mockTeams.findOne.mockResolvedValue({
@@ -148,8 +164,8 @@ describe('teamLeave Lambda', () => {
       leader_email: 'leader@gmail.com',
       members: ['member1@gmail.com', 'member2@gmail.com'],
       status: 'Active',
-      created: 'dateCreated',
-      updated: 'dateUpdated',
+      created: new Date(),
+      updated: new Date(),
     });
     const result = await main(mockEvent, mockContext, mockCallback);
     expect(result.statusCode).toBe(400);
@@ -172,7 +188,10 @@ describe('teamLeave Lambda', () => {
       team_info: {
         team_id: 'team1234',
         role: 'leader',
-        pending_invites: [{}, {}],
+        pending_invites: [
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+        ],
       },
     });
     mockTeams.findOne.mockResolvedValue({
@@ -180,8 +199,8 @@ describe('teamLeave Lambda', () => {
       leader_email: 'leader@gmail.com',
       members: ['leader@gmail.com'],
       status: 'Active',
-      created: 'dateCreated',
-      updated: 'dateUpdated',
+      created: new Date(),
+      updated: new Date(),
     });
     const result = await main(mockEvent, mockContext, mockCallback);
     expect(result.statusCode).toBe(200);
@@ -204,7 +223,10 @@ describe('teamLeave Lambda', () => {
       team_info: {
         team_id: 'team1234',
         role: 'member',
-        pending_invites: [{}, {}],
+        pending_invites: [
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+          { team_id: 'fake-team', invited_by: 'test@example.com', invited_at: new Date(), team_name: 'Fake Team' },
+        ],
       },
     });
     mockTeams.findOne.mockResolvedValue({
@@ -212,8 +234,8 @@ describe('teamLeave Lambda', () => {
       leader_email: 'leader@gmail.com',
       members: ['leader@gmail.com'],
       status: 'Active',
-      created: 'dateCreated',
-      updated: 'dateUpdated',
+      created: new Date(),
+      updated: new Date(),
     });
     const result = await main(mockEvent, mockContext, mockCallback);
     expect(result.statusCode).toBe(200);
