@@ -75,9 +75,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     const teamInfo = authUser.team_info;
 
     // 8. Check if user is team lead
-    if (teamInfo.role == 'leader') {
-      return await disbandTeam(auth_token, auth_email, team_id);
-    }
+    if (teamInfo.role == 'leader') return await disbandTeam(auth_token, auth_email, team_id);
 
     // 9. Remove user from team
     await teams.updateOne(
