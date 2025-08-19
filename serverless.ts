@@ -9,6 +9,7 @@ import discord from '@functions/discord';
 import read from '@functions/read';
 import waiver from '@functions/waiver';
 import resume from '@functions/resume';
+import teamsInvite from '@functions/teams/invite';
 import resetPassword from '@functions/reset-password';
 import forgotPassword from '@functions/forgot-password';
 import leaderboard from '@functions/leaderboard';
@@ -20,6 +21,12 @@ import verifyEmail from '@functions/verify-email';
 import deleteUser from '@functions/delete';
 import userExists from '@functions/user-exists';
 import interestForm from '@functions/interest-form';
+import teamsCreate from '@functions/teams/create';
+import memberRemoval from '@functions/teams/member-removal';
+import declineInvitation from '@functions/teams/decline-invite';
+import teamsJoin from '@functions/teams/join';
+import teamsRead from '@functions/teams/read';
+import disband from '@functions/teams/disband';
 import teamLeave from '@functions/teams/leave';
 
 import * as path from 'path';
@@ -54,6 +61,7 @@ const serverlessConfiguration: AWS = {
     attendEvent,
     waiver,
     resume,
+    teamsInvite,
     read,
     discord,
     forgotPassword,
@@ -67,6 +75,12 @@ const serverlessConfiguration: AWS = {
     deleteUser,
     userExists,
     interestForm,
+    teamsCreate,
+    memberRemoval,
+    declineInvitation,
+    teamsJoin,
+    teamsRead,
+    disband,
     teamLeave
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
@@ -85,3 +99,6 @@ const serverlessConfiguration: AWS = {
 };
 
 module.exports = serverlessConfiguration;
+
+
+
