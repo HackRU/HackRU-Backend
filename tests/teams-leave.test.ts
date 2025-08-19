@@ -9,10 +9,10 @@ describe('teamLeave Lambda', () => {
   const path = '/teams/leave';
   const httpMethod = 'POST';
 
-  type MockCollection<T> = {
-    findOne: jest.Mock<Promise<Partial<T> | null>, any>;
-    updateOne: jest.Mock<Promise<any>, any>;
-  };
+  interface MockCollection<T> {
+    findOne: jest.Mock<Promise<Partial<T> | null>, unknown[]>;
+    updateOne: jest.Mock<Promise<unknown>, unknown[]>;
+  }
 
   let mockUsers: MockCollection<UserDocument>;
   let mockTeams: MockCollection<TeamDocument>;
