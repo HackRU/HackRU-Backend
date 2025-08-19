@@ -81,8 +81,7 @@ const serverlessConfiguration: AWS = {
     teamsJoin,
     teamsRead,
     disband,
-    teamLeave
-    
+    teamLeave,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
@@ -100,6 +99,3 @@ const serverlessConfiguration: AWS = {
 };
 
 module.exports = serverlessConfiguration;
-
-
-
