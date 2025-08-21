@@ -12,10 +12,10 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
-    const { auth_token, auth_email, team_id } = event.body;
+    const { auth_token: authToken, auth_email: authEmail, team_id: teamId } = event.body;
 
     // 1. Validate auth token
-    const tokenValid = validateToken(auth_token, process.env.JWT_SECRET, auth_email);
+    const tokenValid = validateToken(authToken, process.env.JWT_SECRET, authEmail);
     if (!tokenValid) {
       return {
         statusCode: 401,
@@ -30,7 +30,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     const teams = db.getCollection<TeamDocument>('teams');
 
     // 3. check if user exisits
-    const authUser = await users.findOne({ email: auth_email });
+    const authUser = await users.findOne({ email: authEmail });
     if (!authUser) {
       return {
         statusCode: 404,
@@ -39,7 +39,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     }
 
     // 4. check if team exisits
-    const team = await teams.findOne({ team_id: team_id });
+    const team = await teams.findOne({ team_id: teamId });
     if (!team) {
       return {
         statusCode: 404,
@@ -64,7 +64,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     }
 
     // 7. Check if user is in team
-    if (!team.members.includes(auth_email)) {
+    if (!team.members.includes(authEmail)) {
       return {
         statusCode: 400,
         body: JSON.stringify({ statusCode: 400, message: 'User not in team' }),
@@ -75,11 +75,12 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     const teamInfo = authUser.team_info;
 
     // 8. Check if user is team lead
-    if (teamInfo.role == 'leader') return await disbandTeam(auth_token, auth_email, team_id);
+    if (teamInfo.role == 'leader') return await disbandTeam(authToken, authEmail, teamId);
+  
 
     // 9. Remove user from team
     await teams.updateOne(
-      { team_id: team_id, members: authUser.email },
+      { team_id: teamId, members: authUser.email },
       {
         $pull: {
           members: authUser.email,
@@ -98,7 +99,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
 
     // 11. update the MongoDB user
     await users.updateOne(
-      { email: auth_email },
+      { email: authEmail },
       {
         $set: {
           confirmed_team: authUser.confirmed_team,
