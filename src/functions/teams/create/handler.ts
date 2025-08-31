@@ -98,6 +98,18 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     // Validate all member emails exist using user-exists logic
     const memberEmails = event.body.members.map((email) => email.toLowerCase());
+
+    // Check if user is trying to invite themselves
+    if (memberEmails.includes(event.body.auth_email.toLowerCase())) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'You cannot invite yourself to a team',
+        }),
+      };
+    }
+
     const invalidEmails = [];
     const emailsAlreadyInTeams = [];
 
