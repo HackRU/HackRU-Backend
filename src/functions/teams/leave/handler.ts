@@ -55,16 +55,16 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       };
     }
 
-    //7. Check is teamlead is real
+    // 6. Check is teamlead is real
     const teamAuth = await users.findOne({ email: team.leader_email });
-    if(!teamAuth){
-      return{
+    if (!teamAuth) {
+      return {
         statusCode: 400,
         body: JSON.stringify({ statusCode: 400, message: 'Invalid team lead' }),
-      }
+      };
     }
 
-    // 6. No team members
+    // 7. No team members
     if (team.members.length + 1 == 0) {
       return {
         statusCode: 400,
@@ -72,7 +72,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       };
     }
 
-    // 7. Check if user is in team
+    // 8. Check if user is in team
     if (!team.members.includes(authEmail) && team.leader_email !== authEmail) {
       return {
         statusCode: 400,
@@ -83,10 +83,10 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     //grabs team info object
     const teamInfo = authUser.team_info;
 
-    // 8. Check if user is team lead
+    // 9. Check if user is team lead
     if (teamInfo.role == 'leader') return await disbandTeam(authToken, authEmail, teamId);
 
-    // 9. Remove user from team
+    // 10. Remove user from team
     await teams.updateOne(
       { team_id: teamId, members: authUser.email },
       {
@@ -96,7 +96,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       }
     );
 
-    // 10. clear team_info and set confirmed_team
+    // 11. clear team_info and set confirmed_team
 
     authUser.confirmed_team = false;
     authUser.team_info = {
@@ -105,7 +105,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       pending_invites: [],
     };
 
-    // 11. update the MongoDB user
+    // 12. update the MongoDB user
     await users.updateOne(
       { email: authEmail },
       {
