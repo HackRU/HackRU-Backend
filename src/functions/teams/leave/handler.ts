@@ -55,6 +55,15 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       };
     }
 
+    //7. Check is teamlead is real
+    const teamAuth = await users.findOne({ email: team.leader_email });
+    if(!teamAuth){
+      return{
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'Invalid team lead' }),
+      }
+    }
+
     // 6. No team members
     if (team.members.length + 1 == 0) {
       return {
