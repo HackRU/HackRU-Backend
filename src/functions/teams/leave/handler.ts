@@ -56,7 +56,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     }
 
     // 6. No team members
-    if (team.members.length == 0) {
+    if (team.members.length + 1 == 0) {
       return {
         statusCode: 400,
         body: JSON.stringify({ statusCode: 400, message: 'Empty team member list' }),
@@ -64,7 +64,7 @@ const teamLeave: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     }
 
     // 7. Check if user is in team
-    if (!team.members.includes(authEmail)) {
+    if (!team.members.includes(authEmail) && team.leader_email !== authEmail) {
       return {
         statusCode: 400,
         body: JSON.stringify({ statusCode: 400, message: 'User not in team' }),
