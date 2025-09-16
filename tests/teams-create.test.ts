@@ -24,7 +24,7 @@ const mockTeamsCollection = {
 const mockDbInstance = {
   connect: jest.fn(),
   getClient: jest.fn(() => mockClient),
-  getCollection: jest.fn((name: string) => {
+  getCollection: jest.fn((name) => {
     if (name === 'users') return mockUsersCollection;
     if (name === 'teams') return mockTeamsCollection;
     return null;
@@ -78,12 +78,14 @@ describe('Teams Create Handler', () => {
     email: 'leader@test.com',
     confirmed_team: false,
     team_info: null,
+    registration_status: 'registered',
   };
 
   const mockMemberUser = {
     email: 'member1@test.com',
     confirmed_team: false,
     team_info: null,
+    registration_status: 'registered',
   };
 
   it('should successfully create team and send invitations', async () => {
@@ -380,5 +382,102 @@ describe('Teams Create Handler', () => {
       }),
       expect.objectContaining({ session: mockSession })
     );
+  });
+
+  it('should return 400 when leader has unregistered status', async () => {
+    const unregisteredLeader = {
+      ...mockLeaderUser,
+      registration_status: 'unregistered',
+    };
+    mockUsersCollection.findOne.mockResolvedValue(unregisteredLeader);
+
+    const mockEvent = createEvent(mockEventData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe(
+      "User must be in 'registered', 'confirmation', or 'coming' state to create a team. Current state: unregistered"
+    );
+  });
+
+  it('should return 400 when leader has rejected status', async () => {
+    const rejectedLeader = {
+      ...mockLeaderUser,
+      registration_status: 'rejected',
+    };
+    mockUsersCollection.findOne.mockResolvedValue(rejectedLeader);
+
+    const mockEvent = createEvent(mockEventData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe(
+      "User must be in 'registered', 'confirmation', or 'coming' state to create a team. Current state: rejected"
+    );
+  });
+
+  it('should return 400 when some members have invalid registration status', async () => {
+    const unregisteredMember = {
+      ...mockMemberUser,
+      email: 'member1@test.com',
+      registration_status: 'unregistered',
+    };
+
+    const waitlistMember = {
+      ...mockMemberUser,
+      email: 'member2@test.com',
+      registration_status: 'waitlist',
+    };
+
+    mockUsersCollection.findOne
+      .mockResolvedValueOnce(mockLeaderUser) // Auth user lookup
+      .mockResolvedValueOnce(unregisteredMember) // member1@test.com lookup
+      .mockResolvedValueOnce(waitlistMember); // member2@test.com lookup
+
+    const mockEvent = createEvent(mockEventData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(400);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Some users have invalid registration status for team creation');
+    expect(body.invalid_status_users).toEqual([
+      { email: 'member1@test.com', status: 'unregistered' },
+      { email: 'member2@test.com', status: 'waitlist' },
+    ]);
+    expect(body.required_status).toEqual(['registered', 'confirmation', 'coming']);
+  });
+
+  it('should successfully create team when all users have valid registration statuses', async () => {
+    const confirmationLeader = {
+      ...mockLeaderUser,
+      registration_status: 'confirmation',
+    };
+
+    const comingMember = {
+      ...mockMemberUser,
+      email: 'member1@test.com',
+      registration_status: 'coming',
+    };
+
+    const registeredMember = {
+      ...mockMemberUser,
+      email: 'member2@test.com',
+      registration_status: 'registered',
+    };
+
+    mockUsersCollection.findOne
+      .mockResolvedValueOnce(confirmationLeader) // Auth user lookup
+      .mockResolvedValueOnce(comingMember) // member1@test.com lookup
+      .mockResolvedValueOnce(registeredMember); // member2@test.com lookup
+
+    const mockEvent = createEvent(mockEventData, '/teams/create', 'POST');
+    const result = await main(mockEvent, mockContext);
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Team created successfully');
+    expect(body.team_id).toBeDefined();
   });
 });

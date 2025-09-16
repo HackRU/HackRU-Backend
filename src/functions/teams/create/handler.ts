@@ -74,6 +74,18 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     }
 
+    // Check if auth user has valid registration status for team creation
+    const validStatesForTeamCreation = ['registered', 'confirmation', 'coming'];
+    if (!validStatesForTeamCreation.includes(authUser.registration_status)) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: `User must be in 'registered', 'confirmation', or 'coming' state to create a team. Current state: ${authUser.registration_status}`,
+        }),
+      };
+    }
+
     // Check if user already leads a team
     if (authUser.team_info?.role === 'leader') {
       return {
@@ -112,11 +124,17 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     const invalidEmails = [];
     const emailsAlreadyInTeams = [];
+    const emailsWithInvalidStatus = [];
 
     for (const email of memberEmails) {
       const user = await users.findOne({ email: email });
-      if (!user) invalidEmails.push(email);
-      else if (user.confirmed_team === true) emailsAlreadyInTeams.push(email);
+      if (!user) 
+        invalidEmails.push(email);
+       else if (user.confirmed_team === true) 
+        emailsAlreadyInTeams.push(email);
+       else if (!validStatesForTeamCreation.includes(user.registration_status)) 
+        emailsWithInvalidStatus.push({ email, status: user.registration_status });
+      
     }
 
     // Return errors if any validation failed
@@ -138,6 +156,18 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
           statusCode: 400,
           message: 'Some users are already part of teams',
           users_in_teams: emailsAlreadyInTeams,
+        }),
+      };
+    }
+
+    if (emailsWithInvalidStatus.length > 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Some users have invalid registration status for team creation',
+          invalid_status_users: emailsWithInvalidStatus,
+          required_status: validStatesForTeamCreation,
         }),
       };
     }
