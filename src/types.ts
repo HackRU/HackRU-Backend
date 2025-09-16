@@ -12,7 +12,7 @@ export interface Failure {
 
 export interface UserTeamInfo {
   team_id: string | null;
-  role: 'leader' | 'member' | null;
+  role: TeamRole | null;
   pending_invites: TeamInvite[];
 }
 
@@ -20,7 +20,7 @@ export interface TeamDocument {
   team_id: string;
   leader_email: string;
   members: string[];
-  status: 'Active' | 'Disbanded';
+  status: TeamStatus;
   team_name: string;
   created: Date;
   updated: Date;
@@ -78,13 +78,24 @@ export interface UserDocument {
   registered_at: string;
 }
 
-type RegistrationStatus =
-  | 'unregistered'
-  | 'registered'
-  | 'rejected'
-  | 'confirmation'
-  | 'waitlist'
-  | 'coming'
-  | 'not_coming'
-  | 'confirmed'
-  | 'checked_in';
+export enum RegistrationStatus {
+  UNREGISTERED = 'unregistered',
+  REGISTERED = 'registered',
+  REJECTED = 'rejected',
+  CONFIRMATION = 'confirmation',
+  WAITLIST = 'waitlist',
+  COMING = 'coming',
+  NOT_COMING = 'not_coming',
+  CONFIRMED = 'confirmed',
+  CHECKED_IN = 'checked_in',
+}
+
+export enum TeamRole {
+  LEADER = 'leader',
+  MEMBER = 'member',
+}
+
+export enum TeamStatus {
+  ACTIVE = 'Active',
+  DISBANDED = 'Disbanded',
+}
