@@ -128,13 +128,10 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     for (const email of memberEmails) {
       const user = await users.findOne({ email: email });
-      if (!user) 
-        invalidEmails.push(email);
-       else if (user.confirmed_team === true) 
-        emailsAlreadyInTeams.push(email);
-       else if (!validStatesForTeamCreation.includes(user.registration_status)) 
+      if (!user) invalidEmails.push(email);
+      else if (user.confirmed_team === true) emailsAlreadyInTeams.push(email);
+      else if (!validStatesForTeamCreation.includes(user.registration_status))
         emailsWithInvalidStatus.push({ email, status: user.registration_status });
-      
     }
 
     // Return errors if any validation failed
