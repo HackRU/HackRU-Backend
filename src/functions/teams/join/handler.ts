@@ -2,7 +2,7 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { MongoDB, validateToken } from '../../../util';
-import { UserDocument, TeamDocument } from '../../../types';
+import { UserDocument, TeamDocument, TeamStatus, TeamRole } from '../../../types';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -76,7 +76,7 @@ const teamsJoin: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       };
     }
 
-    if (team.status !== 'Active') {
+    if (team.status !== TeamStatus.ACTIVE) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -117,7 +117,7 @@ const teamsJoin: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
           confirmed_team: true,
           team_info: {
             team_id: event.body.team_id,
-            role: 'member',
+            role: TeamRole.MEMBER,
             pending_invites: remainingInvites,
           },
         },

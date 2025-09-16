@@ -7,6 +7,7 @@ import schema from './schema';
 import { validateEmail } from '../../helper';
 
 import { MongoDB, validateToken, ensureRoles } from '../../util';
+import { RegistrationStatus } from '../../types';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 import { Document, WithId } from 'mongodb';
@@ -94,7 +95,7 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     }
 
     // add registered_at time if status is updated
-    if (event.body.updates?.$set?.registration_status == 'registered')
+    if (event.body.updates?.$set?.registration_status == RegistrationStatus.REGISTERED)
       event.body.updates.$set['registered_at'] = new Date().toISOString();
 
     // call updates
@@ -150,49 +151,68 @@ interface Updates {
 // 2. no alteration to fields such as: _id, password,
 
 const registrationStatusGraph = {
-  unregistered: ['registered'],
-  registered: ['rejected', 'confirmation', 'waitlist'],
-  confirmation: ['coming', 'not_coming'],
-  rejected: ['checked_in'],
-  coming: ['not_coming', 'confirmed'],
-  not_coming: ['coming', 'waitlist'],
-  confirmed: ['checked_in'],
-  waitlist: ['checked_in'],
-  checked_in: [],
+  [RegistrationStatus.UNREGISTERED]: [RegistrationStatus.REGISTERED],
+  [RegistrationStatus.REGISTERED]: [
+    RegistrationStatus.REJECTED,
+    RegistrationStatus.CONFIRMATION,
+    RegistrationStatus.WAITLIST,
+  ],
+  [RegistrationStatus.CONFIRMATION]: [RegistrationStatus.COMING, RegistrationStatus.NOT_COMING],
+  [RegistrationStatus.REJECTED]: [RegistrationStatus.CHECKED_IN],
+  [RegistrationStatus.COMING]: [RegistrationStatus.NOT_COMING, RegistrationStatus.CONFIRMED],
+  [RegistrationStatus.NOT_COMING]: [RegistrationStatus.COMING, RegistrationStatus.WAITLIST],
+  [RegistrationStatus.CONFIRMED]: [RegistrationStatus.CHECKED_IN],
+  [RegistrationStatus.WAITLIST]: [RegistrationStatus.CHECKED_IN],
+  [RegistrationStatus.CHECKED_IN]: [],
 };
 
-function isValidRegistrationStatusUpdate(current: string, goal: string): boolean {
+function isValidRegistrationStatusUpdate(current: RegistrationStatus, goal: RegistrationStatus): boolean {
   if (current in registrationStatusGraph) return registrationStatusGraph[current].includes(goal);
   return false;
 }
 
 // return true or false whether the proposed update is valid or not
 
-function validateUpdates(updates: Updates, registrationStatus?: string, user?: WithId<Document>): boolean | string {
+function validateUpdates(
+  updates: Updates,
+  registrationStatus?: RegistrationStatus,
+  user?: WithId<Document>
+): boolean | string {
   const setUpdates = updates.$set;
   if (setUpdates) {
     if ('registration_status' in setUpdates) {
       const currentDate = new Date();
       const goalStatus = setUpdates.registration_status as string;
 
-      if (goalStatus === 'checked_in') {
+      if (goalStatus === RegistrationStatus.CHECKED_IN) {
         if (currentDate > CHECK_IN_CUT_OFF)
           return `Registration is closed. The cutoff date was ${CHECK_IN_CUT_OFF.toLocaleString()}.`;
       }
 
-      const atleastRegistered = ['confirmed', 'waitlist', 'registered', 'coming'].includes(
-        registrationStatus || 'unregistered'
-      );
-      if (goalStatus === 'checked_in' && atleastRegistered) {
-        if (currentDate >= CHECK_IN_START_DATE || registrationStatus === 'confirmed') return true;
+      const atleastRegistered = [
+        RegistrationStatus.CONFIRMED,
+        RegistrationStatus.WAITLIST,
+        RegistrationStatus.REGISTERED,
+        RegistrationStatus.COMING,
+      ].includes(registrationStatus || RegistrationStatus.UNREGISTERED);
+      if (goalStatus === RegistrationStatus.CHECKED_IN && atleastRegistered) {
+        if (currentDate >= CHECK_IN_START_DATE || registrationStatus === RegistrationStatus.CONFIRMED) return true;
         else
           return `Current status of this user is ${registrationStatus}. Check-in will be available after ${CHECK_IN_START_DATE.toLocaleString()}.`;
       }
 
-      if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus))
+      if (
+        !isValidRegistrationStatusUpdate(
+          registrationStatus || RegistrationStatus.UNREGISTERED,
+          goalStatus as RegistrationStatus
+        )
+      )
         return `Invalid registration status update from ${registrationStatus} to ${goalStatus}`;
 
-      if ((registrationStatus === undefined || registrationStatus == 'unregistered') && goalStatus === 'registered') {
+      if (
+        (registrationStatus === undefined || registrationStatus == RegistrationStatus.UNREGISTERED) &&
+        goalStatus === RegistrationStatus.REGISTERED
+      ) {
         if (
           [
             'email',
