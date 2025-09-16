@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 export interface TeamInvite {
   team_id: string;
   invited_by: string;
