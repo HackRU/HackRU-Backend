@@ -76,6 +76,9 @@ export interface UserDocument {
   team_info?: UserTeamInfo;
   created_at: string;
   registered_at: string;
+  clueCount: number;
+  popupStatus: Record<string, boolean>; // false -- pop-up stage has not been seen yet. true -- it has been seen
+  stage: number;
 }
 
 type RegistrationStatus =

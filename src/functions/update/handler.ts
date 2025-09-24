@@ -73,6 +73,42 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       };
     }
 
+    // clue counter 
+    if (event.body.clue_scan) {
+      if (!ensureRoles(authUser.role, ['director', 'organizer'])) {
+        return {
+          statusCode: 401,
+          body: JSON.stringify({ message: 'Only directors and organizers can scan clues' }),
+        };
+      }
+            
+      await users.updateOne(
+          { email: event.body.user_email },
+          { $inc: { clueCount: 1, stage: 1}}
+        );
+            
+        const updatedAfterInc = await users.findOne({ email: event.body.user_email });
+        if (!updatedAfterInc) {
+          return {
+            statusCode: 500,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: 'Error fetching updated user' }),
+          };
+        }
+        return {
+          statusCode: 200,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: 'User clue count updated successfully',
+            user: {
+              email: updatedAfterInc.email,
+              clueCount: updatedAfterInc.clueCount,
+              stage: updatedAfterInc.stage,
+            },
+          }),
+        };
+      }   
+      
     // validate updates
     const validationResult = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
     if (typeof validationResult === 'string') {
