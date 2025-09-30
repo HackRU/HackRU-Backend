@@ -25,7 +25,7 @@ const getBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     // Connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const points = db.getCollection('s25-points-syst');
+    const points = db.getCollection('f25-points-syst');
 
     const buyIns = await points
       .aggregate([

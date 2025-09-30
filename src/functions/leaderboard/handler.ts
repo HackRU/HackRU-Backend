@@ -10,7 +10,7 @@ const leaderboard: APIGatewayProxyHandler = async () => {
   try {
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const points = db.getCollection('s25-points-syst');
+    const points = db.getCollection('f25-points-syst');
 
     const topPlayers = await points
       .aggregate([
