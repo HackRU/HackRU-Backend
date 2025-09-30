@@ -26,7 +26,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
     const users = db.getCollection('users');
-    const pointsCollection = db.getCollection('s25-points-syst');
+    const pointsCollection = db.getCollection('f25-points-syst');
 
     // Make sure user exists
     const user = await users.findOne({ email: email });
