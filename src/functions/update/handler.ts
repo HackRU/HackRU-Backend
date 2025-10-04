@@ -14,7 +14,7 @@ import { Document, WithId } from 'mongodb';
 // import AWS from 'aws-sdk';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
-const CHECK_IN_START_DATE = new Date('2025-02-01T10:30:00');
+const CHECK_IN_START_DATE = new Date('2025-11-01T10:30:00');
 const CHECK_IN_CUT_OFF = new Date(CHECK_IN_START_DATE.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days after check-in start
 
 const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
