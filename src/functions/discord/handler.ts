@@ -4,6 +4,7 @@ import { middyfy } from '@libs/lambda';
 import schema from './schema';
 
 import { MongoDB, validateToken } from '../../util';
+import { RegistrationStatus } from '../../types';
 import * as discordAPI from '@libs/discord';
 
 import * as path from 'path';
@@ -41,7 +42,7 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     const discordUser = await discordAPI.getDiscordUser(tokens.accessToken);
     await discordAPI.updateDiscordMetadata(tokens.accessToken, user.first_name + ' ' + user.last_name, {
       verified: new Date().toISOString(),
-      checked_in: user.registration_status == 'checked_in' ? 1 : 0,
+      checked_in: user.registration_status == RegistrationStatus.CHECKED_IN ? 1 : 0,
     });
 
     await users.updateOne(

@@ -2,7 +2,7 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { MongoDB, validateToken, teamInviteLogic } from '../../../util';
-import { UserDocument, TeamDocument } from 'src/types';
+import { UserDocument, TeamDocument, RegistrationStatus, TeamStatus, TeamRole } from '../../../types';
 import { v4 as uuidv4 } from 'uuid';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -75,7 +75,11 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     // Check if auth user has valid registration status for team creation
-    const validStatesForTeamCreation = ['registered', 'confirmation', 'coming'];
+    const validStatesForTeamCreation = [
+      RegistrationStatus.REGISTERED,
+      RegistrationStatus.CONFIRMATION,
+      RegistrationStatus.COMING,
+    ];
     if (!validStatesForTeamCreation.includes(authUser.registration_status)) {
       return {
         statusCode: 400,
@@ -87,7 +91,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     // Check if user already leads a team
-    if (authUser.team_info?.role === 'leader') {
+    if (authUser.team_info?.role === TeamRole.LEADER) {
       return {
         statusCode: 400,
         body: JSON.stringify({
@@ -188,7 +192,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       team_id: teamId,
       leader_email: event.body.auth_email.toLowerCase(),
       members: [],
-      status: 'Active' as const,
+      status: TeamStatus.ACTIVE,
       team_name: teamName,
       created: new Date(),
       updated: new Date(),
@@ -210,7 +214,7 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
               confirmed_team: true,
               team_info: {
                 team_id: teamId,
-                role: 'leader' as const,
+                role: TeamRole.LEADER,
                 pending_invites: [],
               },
             },

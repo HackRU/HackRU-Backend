@@ -11,7 +11,7 @@ const mockTeamsCollection = {
 
 const mockDbInstance = {
   connect: jest.fn(),
-  getCollection: jest.fn((name: string) => {
+  getCollection: jest.fn((name) => {
     if (name === 'users') return mockUsersCollection;
     if (name === 'teams') return mockTeamsCollection;
     return null;

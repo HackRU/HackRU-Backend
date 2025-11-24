@@ -43,6 +43,7 @@ jest.mock('../src/util', () => ({
 import { main } from '../src/functions/teams/create/handler';
 import { createEvent, mockContext } from './helper';
 import * as util from '../src/util';
+import { RegistrationStatus, TeamStatus, TeamRole } from '../src/types';
 
 describe('Teams Create Handler', () => {
   const validateTokenMock = util.validateToken as jest.Mock;
@@ -78,14 +79,14 @@ describe('Teams Create Handler', () => {
     email: 'leader@test.com',
     confirmed_team: false,
     team_info: null,
-    registration_status: 'registered',
+    registration_status: RegistrationStatus.REGISTERED,
   };
 
   const mockMemberUser = {
     email: 'member1@test.com',
     confirmed_team: false,
     team_info: null,
-    registration_status: 'registered',
+    registration_status: RegistrationStatus.REGISTERED,
   };
 
   it('should successfully create team and send invitations', async () => {
@@ -109,7 +110,7 @@ describe('Teams Create Handler', () => {
         leader_email: 'leader@test.com',
         team_name: 'Test Team',
         members: [],
-        status: 'Active',
+        status: TeamStatus.ACTIVE,
       }),
       expect.objectContaining({ session: mockSession })
     );
@@ -121,7 +122,7 @@ describe('Teams Create Handler', () => {
         $set: {
           confirmed_team: true,
           team_info: expect.objectContaining({
-            role: 'leader',
+            role: TeamRole.LEADER,
             pending_invites: [],
           }),
         },
@@ -387,7 +388,7 @@ describe('Teams Create Handler', () => {
   it('should return 400 when leader has unregistered status', async () => {
     const unregisteredLeader = {
       ...mockLeaderUser,
-      registration_status: 'unregistered',
+      registration_status: RegistrationStatus.UNREGISTERED,
     };
     mockUsersCollection.findOne.mockResolvedValue(unregisteredLeader);
 
@@ -404,7 +405,7 @@ describe('Teams Create Handler', () => {
   it('should return 400 when leader has rejected status', async () => {
     const rejectedLeader = {
       ...mockLeaderUser,
-      registration_status: 'rejected',
+      registration_status: RegistrationStatus.REJECTED,
     };
     mockUsersCollection.findOne.mockResolvedValue(rejectedLeader);
 
@@ -422,13 +423,13 @@ describe('Teams Create Handler', () => {
     const unregisteredMember = {
       ...mockMemberUser,
       email: 'member1@test.com',
-      registration_status: 'unregistered',
+      registration_status: RegistrationStatus.UNREGISTERED,
     };
 
     const waitlistMember = {
       ...mockMemberUser,
       email: 'member2@test.com',
-      registration_status: 'waitlist',
+      registration_status: RegistrationStatus.WAITLIST,
     };
 
     mockUsersCollection.findOne
@@ -443,28 +444,32 @@ describe('Teams Create Handler', () => {
     const body = JSON.parse(result.body);
     expect(body.message).toBe('Some users have invalid registration status for team creation');
     expect(body.invalid_status_users).toEqual([
-      { email: 'member1@test.com', status: 'unregistered' },
-      { email: 'member2@test.com', status: 'waitlist' },
+      { email: 'member1@test.com', status: RegistrationStatus.UNREGISTERED },
+      { email: 'member2@test.com', status: RegistrationStatus.WAITLIST },
     ]);
-    expect(body.required_status).toEqual(['registered', 'confirmation', 'coming']);
+    expect(body.required_status).toEqual([
+      RegistrationStatus.REGISTERED,
+      RegistrationStatus.CONFIRMATION,
+      RegistrationStatus.COMING,
+    ]);
   });
 
   it('should successfully create team when all users have valid registration statuses', async () => {
     const confirmationLeader = {
       ...mockLeaderUser,
-      registration_status: 'confirmation',
+      registration_status: RegistrationStatus.CONFIRMATION,
     };
 
     const comingMember = {
       ...mockMemberUser,
       email: 'member1@test.com',
-      registration_status: 'coming',
+      registration_status: RegistrationStatus.COMING,
     };
 
     const registeredMember = {
       ...mockMemberUser,
       email: 'member2@test.com',
-      registration_status: 'registered',
+      registration_status: RegistrationStatus.REGISTERED,
     };
 
     mockUsersCollection.findOne

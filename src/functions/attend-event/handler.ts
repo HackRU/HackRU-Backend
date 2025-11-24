@@ -5,7 +5,8 @@ import { middyfy } from '@libs/lambda';
 import schema from './schema';
 
 import { MongoDB, validateToken, ensureRoles } from '../../util';
-import type { UserDocument } from 'src/types';
+import type { UserDocument } from '../../types';
+import { RegistrationStatus } from '../../types';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
@@ -63,7 +64,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       };
     }
 
-    if (attendEvent.registration_status != 'checked_in') {
+    if (attendEvent.registration_status != RegistrationStatus.CHECKED_IN) {
       return {
         statusCode: 409,
         body: JSON.stringify({

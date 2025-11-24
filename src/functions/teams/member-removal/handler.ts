@@ -4,7 +4,7 @@ import schema from './schema';
 import { MongoDB, validateToken } from '../../../util';
 import * as path from 'path';
 import * as dotenv from 'dotenv';
-import { UserDocument, TeamDocument } from '../../../types';
+import { UserDocument, TeamDocument, TeamStatus } from '../../../types';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
@@ -52,7 +52,7 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     }
 
     // Check if team is active
-    if (team.status !== 'Active') {
+    if (team.status !== TeamStatus.ACTIVE) {
       return {
         statusCode: 400,
         body: JSON.stringify({

@@ -5,6 +5,7 @@ import schema from './schema';
 
 import { ensureRoles, MongoDB, validateToken } from '../../../util';
 import type { UserDocument, TeamDocument } from '../../../types';
+import { TeamStatus } from '../../../types';
 
 import * as path from 'path';
 import * as dotenv from 'dotenv';
@@ -98,7 +99,7 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       };
     }
 
-    if (team.status !== 'Active') {
+    if (team.status !== TeamStatus.ACTIVE) {
       return {
         statusCode: 400,
         body: JSON.stringify({
