@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from '@jest/globals';
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import { main } from '../src/functions/update/handler';
 
 import { createEvent, mockContext, Updates } from './helper';
@@ -14,10 +11,7 @@ jest.mock('../src/util', () => ({
     getInstance: jest.fn().mockReturnValue({
       connect: jest.fn(),
       disconnect: jest.fn(),
-      getCollection: jest.fn().mockReturnValue({
-        findOne: jest.fn(),
-        updateOne: jest.fn(),
-      }),
+      getCollection: jest.fn().mockReturnValue({ findOne: jest.fn(), updateOne: jest.fn() }),
     }),
   },
   validateToken: jest.fn().mockReturnValueOnce(false).mockReturnValue(true),
@@ -48,12 +42,7 @@ describe('/update endpoint', () => {
     user_email: 'test@test.org',
     auth_email: 'testAuth@test.org',
     auth_token: 'sampleAuthToken',
-    updates: {
-      $set: {
-        first_name: 'testName',
-        last_name: 'testLastName',
-      },
-    },
+    updates: { $set: { first_name: 'testName', last_name: 'testLastName' } },
   };
   const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
   const mockCallback = jest.fn();
@@ -223,11 +212,7 @@ describe('/update endpoint', () => {
       user_email: 'test@test.org',
       auth_email: 'testAuth@test.org',
       auth_token: 'sampleAuthToken',
-      updates: {
-        $set: {
-          registration_status: 'registered',
-        },
-      },
+      updates: { $set: { registration_status: 'registered' } },
     };
     jest.clearAllMocks();
     findOneMock.mockReturnValue({
@@ -255,11 +240,7 @@ describe('/update endpoint', () => {
       user_email: 'test@test.org',
       auth_email: 'testAuth@test.org',
       auth_token: 'sampleAuthToken',
-      updates: {
-        $set: {
-          registration_status: 'registered',
-        },
-      },
+      updates: { $set: { registration_status: 'registered' } },
     };
 
     jest.clearAllMocks();
@@ -305,11 +286,7 @@ describe('/update endpoint', () => {
       user_email: 'test@test.org',
       auth_email: 'testAuth@test.org',
       auth_token: 'sampleAuthToken',
-      updates: {
-        $set: {
-          email: 'randomVal',
-        },
-      },
+      updates: { $set: { email: 'randomVal' } },
     };
     const mockEvent = createEvent(completeUserData, '/update', 'POST');
     const res = await main(mockEvent, mockContext, mockCallback);

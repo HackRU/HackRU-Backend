@@ -6,21 +6,10 @@ import schema from './schema';
 import { MongoDB, validateToken } from '../../util';
 import * as discordAPI from '@libs/discord';
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
 const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
   const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
-  if (!isValidToken) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({
-        message: 'Unauthorized',
-      }),
-    };
-  }
+  if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ message: 'Unauthorized' }) };
 
   try {
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -28,14 +17,7 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
     const users = db.getCollection('users');
 
     const user = await users.findOne({ email: email });
-    if (!user) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: 'User not found',
-        }),
-      };
-    }
+    if (!user) return { statusCode: 404, body: JSON.stringify({ message: 'User not found' }) };
 
     const tokens = await discordAPI.getDiscordTokens(event.body.code, event.body.redirect_uri);
     const discordUser = await discordAPI.getDiscordUser(tokens.accessToken);
@@ -70,13 +52,7 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
   } catch (error) {
     console.error('Error updating discord', error);
 
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: 'Internal Server Error',
-        error: error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ message: 'Internal Server Error', error: error }) };
   }
 };
 

@@ -1,5 +1,4 @@
 # HackRU-specific Files
-.env
 .env.keys
 
 # Logs
@@ -140,6 +139,8 @@ dist
 
 .env*
 .flaskenv*
+!.env
+!.env.production
 !.env.project
 !.env.vault.dev
 !.env.vault.prod

@@ -28,10 +28,6 @@ import teamsJoin from '@functions/teams/join';
 import teamsRead from '@functions/teams/read';
 import disband from '@functions/teams/disband';
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
 const serverlessConfiguration: AWS = {
   service: 'hackru-backend',
   frameworkVersion: '3',
@@ -40,15 +36,11 @@ const serverlessConfiguration: AWS = {
     name: 'aws',
     runtime: 'nodejs20.x',
     stage: process.env.STAGE,
-    apiGateway: {
-      minimumCompressionSize: 1024,
-      shouldStartNameWithService: true,
-    },
+    apiGateway: { minimumCompressionSize: 1024, shouldStartNameWithService: true },
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
-      DOTENV_KEY: process.env.DOTENV_KEY,
-      SNS_TOPIC_ARN: process.env.SNS_TOPIC_ARN,
+      ...process.env,
     },
   },
   // import the function via paths

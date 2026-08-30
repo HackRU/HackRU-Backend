@@ -2,9 +2,6 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { MongoDB, validateToken } from '../../util';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
@@ -12,15 +9,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   try {
     // check token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
-    if (!isValidToken) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          statusCode: 401,
-          message: 'Unauthorized',
-        }),
-      };
-    }
+    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
 
     // Connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -30,15 +19,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // Make sure user exists
     const user = await users.findOne({ email: email });
-    if (!user) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'User not found.',
-        }),
-      };
-    }
+    if (!user) return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'User not found.' }) };
 
     // get users points
 
@@ -48,15 +29,8 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       { projection: { _id: 0, balance: 1, total_points: 1, buy_ins: 1 } }
     );
 
-    if (!pointUser) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Points not found for this user.',
-        }),
-      };
-    }
+    if (!pointUser)
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Points not found for this user.' }) };
 
     // Check if esists
     const buyIns = Array.isArray(pointUser.buy_ins) ? pointUser.buy_ins : [];
@@ -71,14 +45,7 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       }),
     };
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal server error.',
-        error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error }) };
   }
 };
 

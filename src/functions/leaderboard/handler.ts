@@ -1,10 +1,6 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
 import { middyfy } from '@libs/lambda';
 import { MongoDB } from '../../util';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const leaderboard: APIGatewayProxyHandler = async () => {
   try {
@@ -14,36 +10,16 @@ const leaderboard: APIGatewayProxyHandler = async () => {
 
     const topPlayers = await points
       .aggregate([
-        {
-          $project: {
-            first_name: 1,
-            last_name: 1,
-            total_points: 1,
-          },
-        },
-        {
-          $sort: { total_points: -1 },
-        },
-        {
-          $limit: 20,
-        },
+        { $project: { first_name: 1, last_name: 1, total_points: 1 } },
+        { $sort: { total_points: -1 } },
+        { $limit: 20 },
       ])
       .toArray();
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify(topPlayers),
-    };
+    return { statusCode: 200, body: JSON.stringify(topPlayers) };
   } catch (error) {
     console.error('Error loading top 20', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }) };
   }
 };
 

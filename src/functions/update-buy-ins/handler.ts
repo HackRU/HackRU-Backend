@@ -4,24 +4,12 @@ import { middyfy } from '@libs/lambda';
 import schema from './schema';
 
 import { MongoDB, validateToken } from '../../util';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
     // validate auth token
     const validToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.email);
-    if (!validToken) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          statusCode: 401,
-          message: 'Unauthorized',
-        }),
-      };
-    }
+    if (!validToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
 
     // connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -32,10 +20,7 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     if (!userPoints || !userPoints.total_points) {
       return {
         statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'User point balance information not found',
-        }),
+        body: JSON.stringify({ statusCode: 404, message: 'User point balance information not found' }),
       };
     }
 
@@ -47,10 +32,7 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     if (userBuyInsSorted.length !== requestBuyInsSorted.length) {
       return {
         statusCode: 400,
-        body: JSON.stringify({
-          statusCode: 400,
-          message: 'Request body prizes do not match',
-        }),
+        body: JSON.stringify({ statusCode: 400, message: 'Request body prizes do not match' }),
       };
     }
 
@@ -59,10 +41,7 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
       if (requestBuyInsSorted[i].prize_id !== userBuyInsSorted[i].prize_id) {
         return {
           statusCode: 400,
-          body: JSON.stringify({
-            statusCode: 400,
-            message: 'Request body prizes do not match',
-          }),
+          body: JSON.stringify({ statusCode: 400, message: 'Request body prizes do not match' }),
         };
       }
       pointsUsed += event.body.buy_ins[i].buy_in;
@@ -72,10 +51,7 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     if (pointsUsed > userPoints.total_points) {
       return {
         statusCode: 403,
-        body: JSON.stringify({
-          statusCode: 403,
-          message: 'Points distributed exceed user point total.',
-        }),
+        body: JSON.stringify({ statusCode: 403, message: 'Points distributed exceed user point total.' }),
       };
     }
 
@@ -88,19 +64,13 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
       if (Number.isNaN(numVal)) {
         return {
           statusCode: 403,
-          body: JSON.stringify({
-            statusCode: 403,
-            message: 'Requested point change is not a valid integer input',
-          }),
+          body: JSON.stringify({ statusCode: 403, message: 'Requested point change is not a valid integer input' }),
         };
       }
       if (numVal >= 1000 || numVal <= -1000) {
         return {
           statusCode: 403,
-          body: JSON.stringify({
-            statusCode: 403,
-            message: 'Requested point change is not in a valid point range',
-          }),
+          body: JSON.stringify({ statusCode: 403, message: 'Requested point change is not in a valid point range' }),
         };
       }
     }
@@ -109,21 +79,11 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     await pointCollection.updateOne({ email: event.body.email }, { $set: { buy_ins: event.body.buy_ins } });
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        statusCode: 200,
-        message: 'Updated user point balance successfully',
-      }),
+      body: JSON.stringify({ statusCode: 200, message: 'Updated user point balance successfully' }),
     };
   } catch (error) {
     console.error('Error updating', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal server error',
-        error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error }) };
   }
 };
 

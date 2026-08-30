@@ -6,10 +6,7 @@ import * as jwt from 'jsonwebtoken';
 import type { JwtPayload } from 'jsonwebtoken';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 // cache connection so only one copy is used
 export class MongoDB {
   private static instance: MongoDB;
@@ -73,10 +70,7 @@ export function ensureRoles(userRoles: Record<string, boolean>, roles: string[])
 
 export async function checkIfFileExists(bucketName: string, objectKey: string): Promise<boolean> {
   try {
-    const params = {
-      Bucket: bucketName,
-      Key: objectKey,
-    };
+    const params = { Bucket: bucketName, Key: objectKey };
     const s3 = new S3Client();
     const command = new HeadObjectCommand(params);
     await s3.send(command);
@@ -108,13 +102,7 @@ export async function userExistsLogic(
   // token check
   const isValidToken = validateToken(authToken, process.env.JWT_SECRET!, authEmail);
   if (!isValidToken) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({
-        statusCode: 401,
-        message: 'Unauthorized',
-      }),
-    };
+    return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
   }
 
   try {
@@ -126,13 +114,7 @@ export async function userExistsLogic(
     // auth user exists?
     const authUser = await users.findOne({ email: authEmail });
     if (!authUser) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Auth user not found.',
-        }),
-      };
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }) };
     }
 
     // lookup user exists?
@@ -141,30 +123,14 @@ export async function userExistsLogic(
       { projection: { password: 0, _id: 0 } }
     );
     if (!lookupUser) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Look-up user was not found',
-        }),
-      };
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Look-up user was not found' }) };
     }
 
     // all good
-    return {
-      statusCode: 200,
-      body: JSON.stringify('User exists'),
-    };
+    return { statusCode: 200, body: JSON.stringify('User exists') };
   } catch (error) {
     console.error('Error reading user:', error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal server error.',
-        error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error }) };
   }
 }
 
@@ -178,10 +144,7 @@ export async function teamInviteLogic(
 
   // auth check
   if (!validateToken(authToken, process.env.JWT_SECRET!, authEmail)) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({ message: 'Unauthorized' }),
-    };
+    return { statusCode: 401, body: JSON.stringify({ message: 'Unauthorized' }) };
   }
 
   // DB setup
@@ -194,46 +157,29 @@ export async function teamInviteLogic(
   // verify auth user
   const authUser = await users.findOne({ email: authEmail });
   if (!authUser) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ message: 'Auth user not found' }),
-    };
+    return { statusCode: 404, body: JSON.stringify({ message: 'Auth user not found' }) };
   }
 
   // verify team & leadership
   const team = await teams.findOne({ team_id: teamId });
   if (!team) {
-    return {
-      statusCode: 404,
-      body: JSON.stringify({ message: 'Team not found' }),
-    };
+    return { statusCode: 404, body: JSON.stringify({ message: 'Team not found' }) };
   }
   if (team.leader_email !== authEmail) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({ message: 'Auth user is not the team leader' }),
-    };
+    return { statusCode: 403, body: JSON.stringify({ message: 'Auth user is not the team leader' }) };
   }
 
   // check team status
   if (team.status !== 'Active') {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ message: 'Team is not active' }),
-    };
+    return { statusCode: 400, body: JSON.stringify({ message: 'Team is not active' }) };
   }
 
   // capacity check
   const confirmedCount = (Array.isArray(team.members) ? team.members.length : 0) + 1; // + 1 for the leader
-  const pendingCount = await users.countDocuments({
-    'team_info.pending_invites.team_id': teamId,
-  });
+  const pendingCount = await users.countDocuments({ 'team_info.pending_invites.team_id': teamId });
   const availableSlots = MAX_TEAM_SIZE - confirmedCount - pendingCount;
   if (availableSlots <= 0) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ message: 'Team is already full' }),
-    };
+    return { statusCode: 400, body: JSON.stringify({ message: 'Team is already full' }) };
   }
 
   const invited: string[] = [];
@@ -300,24 +246,12 @@ export async function teamInviteLogic(
   } catch (err) {
     // eslint-disable-next-line no-console
     console.error('Transaction aborted:', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: 'Internal server error during invitation processing',
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ message: 'Internal server error during invitation processing' }) };
   } finally {
     await session.endSession();
   }
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({
-      message: 'Invitations sent successfully',
-      invited,
-      failed,
-    }),
-  };
+  return { statusCode: 200, body: JSON.stringify({ message: 'Invitations sent successfully', invited, failed }) };
 }
 
 export async function disbandTeam(
@@ -328,13 +262,7 @@ export async function disbandTeam(
   // token check
   const isValidToken = validateToken(auth_token, process.env.JWT_SECRET!, auth_email);
   if (!isValidToken) {
-    return {
-      statusCode: 401,
-      body: JSON.stringify({
-        statusCode: 401,
-        message: 'Unauthorized',
-      }),
-    };
+    return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
   }
   try {
     //db connection + users collection
@@ -344,23 +272,11 @@ export async function disbandTeam(
 
     const authUser = await users.findOne({ email: auth_email });
     if (!authUser) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Auth user not found.',
-        }),
-      };
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }) };
     }
     //verify authUser is team leader
     if (!(authUser.team_info.role == 'leader')) {
-      return {
-        statusCode: 403,
-        body: JSON.stringify({
-          statusCode: 403,
-          message: 'Auth user not leader.',
-        }),
-      };
+      return { statusCode: 403, body: JSON.stringify({ statusCode: 403, message: 'Auth user not leader.' }) };
     }
     //get teams collection
     const teams = db.getCollection<TeamDocument>('teams');
@@ -368,23 +284,11 @@ export async function disbandTeam(
     //verify team exists and is not already disbanded
     const team = await teams.findOne({ team_id: team_id });
     if (!team) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Team does not exist',
-        }),
-      };
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team does not exist' }) };
     }
 
     if (team.status == 'Disbanded') {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Team already disbanded.',
-        }),
-      };
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team already disbanded.' }) };
     }
 
     //clear team_info object for members
@@ -407,9 +311,7 @@ export async function disbandTeam(
     //remove pending invites from all users
     await users.updateMany(
       { 'team_info.pending_invites.team_id': team_id },
-      {
-        $pull: { 'team_info.pending_invites': { team_id: team_id } },
-      }
+      { $pull: { 'team_info.pending_invites': { team_id: team_id } } }
     );
 
     //update teams object
@@ -427,11 +329,7 @@ export async function disbandTeam(
     console.error('Error in team disbandment:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal server error.',
-        error: error.message,
-      }),
+      body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error: error.message }),
     };
   }
 }
@@ -465,22 +363,8 @@ export interface UserDoc {
   ethnicity: string;
   phone_number: string;
   registration_status: RegistrationStatus;
-  day_of: {
-    event: Record<
-      string,
-      {
-        attend: number;
-        time: string[];
-      }
-    >;
-  };
-  discord: {
-    user_id: string;
-    username: string;
-    access_token: string;
-    refresh_token: string;
-    expires_at: number;
-  };
+  day_of: { event: Record<string, { attend: number; time: string[] }> };
+  discord: { user_id: string; username: string; access_token: string; refresh_token: string; expires_at: number };
   created_at: string;
   registered_at: string;
 }
