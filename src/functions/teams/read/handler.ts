@@ -6,23 +6,11 @@ import schema from './schema';
 import { ensureRoles, MongoDB, validateToken } from '../../../util';
 import type { UserDocument, TeamDocument } from '../../../types';
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
 const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   try {
     // Validate auth token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
-    if (!isValidToken) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          statusCode: 401,
-          message: 'Unauthorized',
-        }),
-      };
-    }
+    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
 
     // Connect to database
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -32,15 +20,8 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
 
     // Check if auth user exists
     const authUser = await users.findOne({ email: event.body.auth_email.toLowerCase() });
-    if (!authUser) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Auth user not found',
-        }),
-      };
-    }
+    if (!authUser)
+      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found' }) };
 
     let teamId = event.body.team_id;
 
@@ -50,28 +31,14 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       ((teamId && authUser.team_info?.team_id !== teamId) ||
         (!teamId && event.body.auth_email !== event.body.member_email)) &&
       !isOrganizer
-    ) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          statusCode: 401,
-          message: 'Unauthorized',
-        }),
-      };
-    }
+    )
+      return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
 
     // Fetch team id if member_email specified
     if (!teamId) {
       const teamUser = await users.findOne({ email: event.body.member_email.toLowerCase() });
-      if (!teamUser) {
-        return {
-          statusCode: 404,
-          body: JSON.stringify({
-            statusCode: 404,
-            message: 'Team user not found',
-          }),
-        };
-      }
+      if (!teamUser)
+        return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team user not found' }) };
 
       if (!teamUser.team_info?.team_id) {
         return {
@@ -88,25 +55,10 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
 
     // Fetch team and validate status
     const team = await teams.findOne({ team_id: teamId });
-    if (!team) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          statusCode: 404,
-          message: 'Team not found',
-        }),
-      };
-    }
+    if (!team) return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team not found' }) };
 
-    if (team.status !== 'Active') {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          statusCode: 400,
-          message: 'Team is not active',
-        }),
-      };
-    }
+    if (team.status !== 'Active')
+      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Team is not active' }) };
 
     // Return team data
     return {
@@ -122,11 +74,7 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
 
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error: error.message,
-      }),
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error: error.message }),
     };
   }
 };

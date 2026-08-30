@@ -2,9 +2,6 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import { MongoDB } from '../../util';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import schema from './schema';
 
@@ -67,20 +64,13 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     // Return success
     return {
       statusCode: 200,
-      body: JSON.stringify({
-        message: 'Successful Form Submission',
-        submissionId: result.insertedId,
-      }),
+      body: JSON.stringify({ message: 'Successful Form Submission', submissionId: result.insertedId }),
     };
   } catch (error) {
     console.error('Error submitting interest form:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error: error.message,
-      }),
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error: error.message }),
     };
   }
 };

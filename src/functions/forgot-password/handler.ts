@@ -9,10 +9,6 @@ import * as crypto from 'crypto';
 import * as bcrypt from 'bcryptjs';
 import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2';
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
 const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
 
@@ -22,14 +18,7 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
     const users = db.getCollection('users');
 
     const user = await users.findOne({ email: email });
-    if (!user) {
-      return {
-        statusCode: 404,
-        body: JSON.stringify({
-          message: 'User not found',
-        }),
-      };
-    }
+    if (!user) return { statusCode: 404, body: JSON.stringify({ message: 'User not found' }) };
 
     const token = crypto.randomBytes(8).toString('hex');
     const hashedToken = await bcrypt.hash(token, 8);
@@ -37,26 +26,17 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
     const forgotPasswordDB = db.getCollection('forgot-password');
     await forgotPasswordDB.findOneAndUpdate(
       { email: email },
-      {
-        $set: {
-          token: hashedToken,
-          expiration: Date.now() + 15 * 60 * 1000,
-        },
-      },
+      { $set: { token: hashedToken, expiration: Date.now() + 15 * 60 * 1000 } },
       { upsert: true }
     );
 
     const ses = new SESv2Client();
     const passwordReset = new SendEmailCommand({
       FromEmailAddress: 'no-reply@hackru.org',
-      Destination: {
-        ToAddresses: [email],
-      },
+      Destination: { ToAddresses: [email] },
       Content: {
         Simple: {
-          Subject: {
-            Data: 'HackRU Password Reset',
-          },
+          Subject: { Data: 'HackRU Password Reset' },
           Body: {
             Html: {
               Data: `<p>Hey ${user.first_name + ' ' + user.last_name}!</p><p>You can use this link to reset your HackRU password: <a href="https://hackru.org/magic/${token}">https://hackru.org/magic/${token}</a></p><p>This link expires in 15 minutes. Do not share it with others.</p><p>If you did not request a password reset, you can safely ignore this message.</p><p>- HackRU Team</p>`,
@@ -70,22 +50,11 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
     });
     await ses.send(passwordReset);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: 'Password reset info emailed',
-      }),
-    };
+    return { statusCode: 200, body: JSON.stringify({ message: 'Password reset info emailed' }) };
   } catch (error) {
     console.error('Error generating password reset', error);
 
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        message: 'Internal Server Error',
-        error: error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ message: 'Internal Server Error', error: error }) };
   }
 };
 

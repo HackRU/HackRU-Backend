@@ -2,9 +2,6 @@ import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
 import { MongoDB, validateToken } from '../../util';
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const getBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
@@ -12,15 +9,7 @@ const getBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
   try {
     // check token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
-    if (!isValidToken) {
-      return {
-        statusCode: 401,
-        body: JSON.stringify({
-          statusCode: 401,
-          message: 'Unauthorized',
-        }),
-      };
-    }
+    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
 
     // Connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -40,22 +29,9 @@ const getBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       result[buyIn._id] = buyIn.sum;
     });
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        statusCode: 200,
-        buyIns: result,
-      }),
-    };
+    return { statusCode: 200, body: JSON.stringify({ statusCode: 200, buyIns: result }) };
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error,
-      }),
-    };
+    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }) };
   }
 };
 

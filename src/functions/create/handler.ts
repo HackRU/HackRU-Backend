@@ -9,33 +9,16 @@ import * as config from '../../config';
 
 import { validateEmail } from '../../helper';
 
-import * as path from 'path';
-import * as dotenv from 'dotenv';
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
-
 const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const validRegistrationTime = registrationTime();
   //check link
-  if (!validRegistrationTime) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({
-        statusCode: 400,
-        message: 'Registration is closed!',
-      }),
-    };
-  }
+  if (!validRegistrationTime)
+    return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Registration is closed!' }) };
 
   const uEmail = event.body.email.toLowerCase();
-  if (!validateEmail(uEmail)) {
-    return {
-      statusCode: 403,
-      body: JSON.stringify({
-        statusCode: 403,
-        message: 'Improper Email format',
-      }),
-    };
-  }
+  if (!validateEmail(uEmail))
+    return { statusCode: 403, body: JSON.stringify({ statusCode: 403, message: 'Improper Email format' }) };
+
   let password = event.body.password;
 
   try {
@@ -51,13 +34,7 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     if (existingUser) {
       //link
-      return {
-        statusCode: 400,
-        body: JSON.stringify({
-          statusCode: 400,
-          message: 'Duplicate user!',
-        }),
-      };
+      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Duplicate user!' }) };
     }
     // Check if interest form exists, if so retrieve data from the most recent submission
     const interestForms = db.getCollection('interest-forms');
@@ -94,16 +71,8 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       phone_number: interestFormsData?.phoneNumber ?? event.body.phone_number ?? '',
       country_of_residence: interestFormsData?.countryOfResidence ?? event.body.country_of_residence ?? '',
       registration_status: 'unregistered',
-      day_of: {
-        checkIn: false,
-      },
-      discord: {
-        user_id: '',
-        username: '',
-        access_token: '',
-        refresh_token: '',
-        expires_at: 0,
-      },
+      day_of: { checkIn: false },
+      discord: { user_id: '', username: '', access_token: '', refresh_token: '', expires_at: 0 },
       created_at: new Date().toISOString(),
       registered_at: null,
       interestFormMigrated: interestFormsData ? true : false,
@@ -116,35 +85,20 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
       try {
         await interestForms.updateOne(
           { _id: interestFormsData._id },
-          {
-            $set: {
-              migrated_to_user_account: true,
-              migrated_at: new Date().toISOString(),
-            },
-          }
+          { $set: { migrated_to_user_account: true, migrated_at: new Date().toISOString() } }
         );
       } catch (migrationError) {
         console.warn('Failed to mark interest form as migrated:', migrationError);
       }
     }
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        statusCode: 200,
-        message: 'User created!',
-      }),
-    };
+    return { statusCode: 200, body: JSON.stringify({ statusCode: 200, message: 'User created!' }) };
   } catch (error) {
     console.error('Error creating user', error);
 
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        statusCode: 500,
-        message: 'Internal Server Error',
-        error: error,
-      }),
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error: error }),
     };
   }
 };
