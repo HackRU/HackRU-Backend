@@ -101,9 +101,8 @@ export async function userExistsLogic(
 ): Promise<{ statusCode: number; body: string }> {
   // token check
   const isValidToken = validateToken(authToken, process.env.JWT_SECRET!, authEmail);
-  if (!isValidToken) {
+  if (!isValidToken) 
     return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
-  }
 
   try {
     // connect + grab users
@@ -113,18 +112,16 @@ export async function userExistsLogic(
 
     // auth user exists?
     const authUser = await users.findOne({ email: authEmail });
-    if (!authUser) {
+    if (!authUser) 
       return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }) };
-    }
 
     // lookup user exists?
     const lookupUser = await users.findOne(
       { email: lookupEmail.toLowerCase() },
       { projection: { password: 0, _id: 0 } }
     );
-    if (!lookupUser) {
+    if (!lookupUser) 
       return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Look-up user was not found' }) };
-    }
 
     // all good
     return { statusCode: 200, body: JSON.stringify('User exists') };
@@ -143,9 +140,8 @@ export async function teamInviteLogic(
   const MAX_TEAM_SIZE = 4;
 
   // auth check
-  if (!validateToken(authToken, process.env.JWT_SECRET!, authEmail)) {
+  if (!validateToken(authToken, process.env.JWT_SECRET!, authEmail)) 
     return { statusCode: 401, body: JSON.stringify({ message: 'Unauthorized' }) };
-  }
 
   // DB setup
   const db = MongoDB.getInstance(process.env.MONGO_URI!);
@@ -156,31 +152,27 @@ export async function teamInviteLogic(
 
   // verify auth user
   const authUser = await users.findOne({ email: authEmail });
-  if (!authUser) {
+  if (!authUser) 
     return { statusCode: 404, body: JSON.stringify({ message: 'Auth user not found' }) };
-  }
 
   // verify team & leadership
   const team = await teams.findOne({ team_id: teamId });
-  if (!team) {
+  if (!team) 
     return { statusCode: 404, body: JSON.stringify({ message: 'Team not found' }) };
-  }
-  if (team.leader_email !== authEmail) {
+  
+  if (team.leader_email !== authEmail) 
     return { statusCode: 403, body: JSON.stringify({ message: 'Auth user is not the team leader' }) };
-  }
 
   // check team status
-  if (team.status !== 'Active') {
+  if (team.status !== 'Active') 
     return { statusCode: 400, body: JSON.stringify({ message: 'Team is not active' }) };
-  }
 
   // capacity check
   const confirmedCount = (Array.isArray(team.members) ? team.members.length : 0) + 1; // + 1 for the leader
   const pendingCount = await users.countDocuments({ 'team_info.pending_invites.team_id': teamId });
   const availableSlots = MAX_TEAM_SIZE - confirmedCount - pendingCount;
-  if (availableSlots <= 0) {
+  if (availableSlots <= 0) 
     return { statusCode: 400, body: JSON.stringify({ message: 'Team is already full' }) };
-  }
 
   const invited: string[] = [];
   const failed: Failure[] = [];
@@ -261,9 +253,9 @@ export async function disbandTeam(
 ): Promise<{ statusCode: number; body: string }> {
   // token check
   const isValidToken = validateToken(auth_token, process.env.JWT_SECRET!, auth_email);
-  if (!isValidToken) {
+  if (!isValidToken) 
     return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
-  }
+  
   try {
     //db connection + users collection
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -271,25 +263,23 @@ export async function disbandTeam(
     const users = db.getCollection<UserDocument>('users');
 
     const authUser = await users.findOne({ email: auth_email });
-    if (!authUser) {
+    if (!authUser) 
       return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }) };
-    }
+    
     //verify authUser is team leader
-    if (!(authUser.team_info.role == 'leader')) {
+    if (!(authUser.team_info.role == 'leader')) 
       return { statusCode: 403, body: JSON.stringify({ statusCode: 403, message: 'Auth user not leader.' }) };
-    }
+    
     //get teams collection
     const teams = db.getCollection<TeamDocument>('teams');
 
     //verify team exists and is not already disbanded
     const team = await teams.findOne({ team_id: team_id });
-    if (!team) {
+    if (!team) 
       return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team does not exist' }) };
-    }
 
-    if (team.status == 'Disbanded') {
+    if (team.status == 'Disbanded') 
       return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team already disbanded.' }) };
-    }
 
     //clear team_info object for members
     for (const member_email of team.members) {
