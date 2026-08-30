@@ -40,7 +40,14 @@ const serverlessConfiguration: AWS = {
     environment: {
       AWS_NODEJS_CONNECTION_REUSE_ENABLED: '1',
       NODE_OPTIONS: '--enable-source-maps --stack-trace-limit=1000',
-      ...process.env,
+      STAGE: process.env.STAGE,
+      MONGO_URI: process.env.MONGO_URI,
+      JWT_SECRET: process.env.JWT_SECRET,
+      DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
+      DISCORD_USER_SECRET: process.env.DISCORD_CLIENT_SECRET,
+      WAIVER_BUCKET: process.env.WAIVER_BUCKET,
+      RESUME_BUCKET: process.env.RESUME_BUCKET,
+      SNS_TOPIC_ARN: process.env.SNS_TOPIC_ARN,
     },
   },
   // import the function via paths

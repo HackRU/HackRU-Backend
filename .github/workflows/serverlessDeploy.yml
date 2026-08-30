@@ -33,12 +33,12 @@ jobs:
 
       - name: Deploy dev
         if: github.ref_name == 'dev'
-        run: npx dotenvx run -f .env -- npx serverless deploy
+        run: npm run deploy-dev
         env:
           DOTENV_PRIVATE_KEY: ${{ secrets.DOTENV_PRIVATE_KEY }}
 
       - name: Deploy production
         if: github.ref_name == 'main'
-        run: npx dotenvx run -f .env.production -- npx serverless deploy
+        run: npm run deploy-prod
         env:
           DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
