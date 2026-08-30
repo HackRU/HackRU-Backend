@@ -60,6 +60,11 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
     if (team.status !== 'Active')
       return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Team is not active' }) };
 
+    // Fetch team's pending invites (if any)
+    const pendingInviteUsers = await users
+      .find({ 'team_info.pending_invites.team_id': teamId }, { projection: { email: 1, _id: 0 } })
+      .toArray();
+
     // Return team data
     return {
       statusCode: 200,
@@ -67,6 +72,7 @@ const teamsRead: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
         statusCode: 200,
         message: 'Successfully read team',
         team,
+        invitedUsers: pendingInviteUsers.map((user) => user.email),
       }),
     };
   } catch (error) {

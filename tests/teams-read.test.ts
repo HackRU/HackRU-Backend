@@ -5,6 +5,7 @@ import * as util from '../src/util';
 // Mock the database collections
 const mockUsersCollection = {
   findOne: jest.fn(),
+  find: jest.fn(),
 };
 
 const mockTeamsCollection = {
@@ -178,6 +179,10 @@ describe('/teams/read endpoint', () => {
       leader_email: 'leader@test.com',
     });
 
+    jest.spyOn(mockUsersCollection, 'find').mockReturnValueOnce({
+      toArray: jest.fn().mockResolvedValueOnce([]),
+    });
+
     const mockEvent = createEvent(
       {
         auth_token: 'valid-token',
@@ -197,7 +202,49 @@ describe('/teams/read endpoint', () => {
     expect(body.team.team_id).toBe('test-team-id');
   });
 
-  it('should fetch team details using member_email', async () => {
+  it('should return team details successfully with invited users', async () => {
+    validateTokenMock.mockReturnValue(true);
+
+    usersFindOneMock.mockResolvedValueOnce({
+      email: 'user@test.com',
+      role: { hacker: true },
+      team_info: { team_id: 'test-team-id' },
+    });
+
+    teamsFindOneMock.mockResolvedValueOnce({
+      team_id: 'test-team-id',
+      status: 'Active',
+      members: ['user@test.com', 'member2@test.com'],
+      leader_email: 'leader@test.com',
+    });
+
+    // Mock the users collection to return pending invites
+    const mockPendingInvites = [{ email: 'invitee1@test.com' }, { email: 'invitee2@test.com' }];
+    jest.spyOn(mockUsersCollection, 'find').mockReturnValueOnce({
+      toArray: jest.fn().mockResolvedValueOnce(mockPendingInvites),
+    });
+
+    const mockEvent = createEvent(
+      {
+        auth_token: 'valid-token',
+        auth_email: 'user@test.com',
+        team_id: 'test-team-id',
+      },
+      path,
+      httpMethod
+    );
+
+    const result = await main(mockEvent, mockContext, null);
+
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.message).toBe('Successfully read team');
+    expect(body.team).toBeDefined();
+    expect(body.team.team_id).toBe('test-team-id');
+    expect(body.invitedUsers).toEqual(['invitee1@test.com', 'invitee2@test.com']);
+  });
+
+  it('should fetch team details using member_email with invited users', async () => {
     validateTokenMock.mockReturnValue(true);
 
     usersFindOneMock
@@ -217,6 +264,11 @@ describe('/teams/read endpoint', () => {
       leader_email: 'leader@test.com',
     });
 
+    const mockPendingInvites = [{ email: 'invitee1@test.com' }, { email: 'invitee2@test.com' }];
+    jest.spyOn(mockUsersCollection, 'find').mockReturnValueOnce({
+      toArray: jest.fn().mockResolvedValueOnce(mockPendingInvites),
+    });
+
     const mockEvent = createEvent(
       {
         auth_token: 'valid-token',
@@ -234,5 +286,6 @@ describe('/teams/read endpoint', () => {
     expect(body.message).toBe('Successfully read team');
     expect(body.team).toBeDefined();
     expect(body.team.team_id).toBe('test-team-id');
+    expect(body.invitedUsers).toEqual(['invitee1@test.com', 'invitee2@test.com']);
   });
 });
