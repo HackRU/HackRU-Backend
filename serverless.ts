@@ -45,8 +45,6 @@ const serverlessConfiguration: AWS = {
       JWT_SECRET: process.env.JWT_SECRET,
       DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
       DISCORD_USER_SECRET: process.env.DISCORD_CLIENT_SECRET,
-      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID,
-      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY,
       WAIVER_BUCKET: process.env.WAIVER_BUCKET,
       RESUME_BUCKET: process.env.RESUME_BUCKET,
       SNS_TOPIC_ARN: process.env.SNS_TOPIC_ARN,
