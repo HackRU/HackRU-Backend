@@ -117,6 +117,17 @@ function isValidRegistrationStatusUpdate(current: string, goal: string): boolean
 function validateUpdates(updates: Updates, registrationStatus?: string, user?: WithId<Document>): boolean | string {
   const setUpdates = updates.$set;
   if (setUpdates) {
+    // Checked before registration_status: that branch returns early in several places, and any of
+    // those returns would otherwise let a locked field through alongside a valid status change.
+    if (
+      ['_id', 'password', 'discord', 'created_at', 'registered_at', 'email_verified', 'role'].some(
+        (lockedProp) => lockedProp in setUpdates
+      )
+    )
+      return 'Cannot update locked fields';
+
+    if ('email' in setUpdates) if (!validateEmail(setUpdates.email)) return 'Improper Email format';
+
     if ('registration_status' in setUpdates) {
       const currentDate = new Date();
       const goalStatus = setUpdates.registration_status as string;
@@ -162,15 +173,6 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
           return 'Missing required fields';
       } else return true;
     }
-
-    if ('email' in setUpdates) if (!validateEmail(setUpdates.email)) return 'Improper Email format';
-
-    if (
-      ['_id', 'password', 'discord', 'created_at', 'registered_at', 'email_verified'].some(
-        (lockedProp) => lockedProp in setUpdates
-      )
-    )
-      return 'Cannot update locked fields';
 
     return true;
   }
