@@ -5,7 +5,10 @@ const config: Config.InitialOptions = {
   testEnvironment: 'node', // Test environment is Node.js
   testMatch: ['**/*.test.ts'], // Match test files with .test.ts extension
   transform: {
-    '^.+\\.ts?$': 'ts-jest',
+    // tsconfig.json targets Node16 modules for the deployed bundle, which forbids requiring the
+    // ESM-only @middy packages. The tests run as CommonJS, so compile them with classic resolution.
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    '^.+\\.ts?$': ['ts-jest', { tsconfig: { module: 'commonjs', moduleResolution: 'node' } }],
   },
   rootDir: '../',
   moduleNameMapper: {

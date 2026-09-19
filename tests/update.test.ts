@@ -293,4 +293,67 @@ describe('/update endpoint', () => {
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body).message).toBe('Improper Email format');
   });
+  //case 10
+  it('Cannot escalate own role', async () => {
+    findOneMock.mockReturnValue({
+      email: 'test@test.org',
+      password: 'test',
+      role: {
+        hacker: true,
+        volunteer: false,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+      registration_status: 'registered',
+    });
+    const escalation = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: { $set: { role: { director: true } } } as unknown as Updates,
+    };
+    const mockEvent = createEvent(escalation, '/update', 'POST');
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toBe('Cannot update locked fields');
+  });
+
+  //case 11
+  it('Cannot smuggle a locked field alongside a valid registration_status change', async () => {
+    findOneMock.mockReturnValue({
+      email: 'test@test.org',
+      password: 'test',
+      role: {
+        hacker: true,
+        volunteer: false,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+      registration_status: 'registered',
+    });
+    // registered -> confirmation is a valid transition, so the registration_status branch used to
+    // return early and the locked-field check never ran.
+    const smuggled = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          registration_status: 'confirmation',
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          email_verified: true,
+        },
+      },
+    };
+    const mockEvent = createEvent(smuggled, '/update', 'POST');
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(400);
+    expect(JSON.parse(res.body).message).toBe('Cannot update locked fields');
+  });
 });
