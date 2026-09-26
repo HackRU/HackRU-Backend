@@ -45,6 +45,24 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     if (!updatedUser)
       return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'User to be updated not found.' }) };
 
+    //only director or organizer should be able to update registration status for specified status descriptions
+    const registrationStatus = event.body.updates?.$set?.registration_status as string | undefined;
+
+    if (
+      registrationStatus !== undefined &&
+      ['rejected', 'confirmation', 'waitlist', 'confirmed', 'checked_in'].includes(registrationStatus)
+    ) {
+      if (!ensureRoles(authUser.role, ['director', 'organizer'])) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({
+            statusCode: 403,
+            message: `Forbidden. Auth user must be organizer/director to update registration status to ${registrationStatus}.`,
+          }),
+        };
+      }
+    }
+
     // validate updates
     const validationResult = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
     if (typeof validationResult === 'string')

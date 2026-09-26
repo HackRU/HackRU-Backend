@@ -322,7 +322,7 @@ describe('/update endpoint', () => {
   });
 
   //case 11
-  it('Cannot smuggle a locked field alongside a valid registration_status change', async () => {
+  it('Cannot make invalid registration_status change as hacker', async () => {
     findOneMock.mockReturnValue({
       email: 'test@test.org',
       password: 'test',
@@ -333,6 +333,43 @@ describe('/update endpoint', () => {
         sponsor: false,
         mentor: false,
         organizer: false,
+        director: false,
+      },
+      registration_status: 'confirmed',
+    });
+    // registered -> confirmation is a valid transition, so the registration_status branch used to
+    // return early and the locked-field check never ran.
+    const hackerSetCheckIn = {
+      user_email: 'test@test.org',
+      auth_email: 'testAuth@test.org',
+      auth_token: 'sampleAuthToken',
+      updates: {
+        $set: {
+          registration_status: 'checked_in',
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+        },
+      },
+    };
+    const mockEvent = createEvent(hackerSetCheckIn, '/update', 'POST');
+    const res = await main(mockEvent, mockContext, mockCallback);
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.body).message).toBe(
+      'Forbidden. Auth user must be organizer/director to update registration status to checked_in.'
+    );
+  });
+
+  //case 12
+  it('Cannot smuggle a locked field alongside a valid registration_status change', async () => {
+    findOneMock.mockReturnValue({
+      email: 'test@test.org',
+      password: 'test',
+      role: {
+        hacker: false,
+        volunteer: false,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: true,
         director: false,
       },
       registration_status: 'registered',
