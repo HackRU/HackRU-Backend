@@ -4,7 +4,7 @@
   "description": "Backend system for HackRU.",
   "main": "serverless.ts",
   "scripts": {
-    "dev": "dotenvx run -f .env -- serverless offline",
+    "dev": "dotenvx run -f .env.local -- serverless offline",
     "deploy-dev": "dotenvx run -f .env -- serverless deploy",
     "deploy-prod": "dotenvx run -f .env.production -- serverless deploy",
     "test": "jest --watch",
