@@ -27,6 +27,7 @@ import declineInvitation from '@functions/teams/decline-invite';
 import teamsJoin from '@functions/teams/join';
 import teamsRead from '@functions/teams/read';
 import disband from '@functions/teams/disband';
+import teamLeave from '@functions/teams/leave';
 
 const serverlessConfiguration: AWS = {
   service: 'hackru-backend',
@@ -79,6 +80,7 @@ const serverlessConfiguration: AWS = {
     teamsJoin,
     teamsRead,
     disband,
+    teamLeave,
   },
   package: { individually: true, patterns: ['!.env*', '.env.vault'] },
   custom: {
