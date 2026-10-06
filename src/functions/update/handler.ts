@@ -120,7 +120,7 @@ const registrationStatusGraph = {
   rejected: ['checked_in'],
   coming: ['not_coming', 'confirmed'],
   not_coming: ['coming', 'waitlist'],
-  confirmed: ['checked_in'],
+  confirmed: ['checked_in', 'not_coming'],
   waitlist: ['checked_in'],
   checked_in: [],
 };

@@ -393,4 +393,40 @@ describe('/update endpoint', () => {
     expect(res.statusCode).toBe(400);
     expect(JSON.parse(res.body).message).toBe('Cannot update locked fields');
   });
+
+  //case 13
+  it('Confirmed hacker can switch to not_coming, but not back to coming', async () => {
+    findOneMock.mockReturnValue({
+      email: 'test@test.org',
+      password: 'test',
+      role: {
+        hacker: true,
+        volunteer: false,
+        judge: false,
+        sponsor: false,
+        mentor: false,
+        organizer: false,
+        director: false,
+      },
+      registration_status: 'confirmed',
+    });
+    const toStatus = (status: string) =>
+      createEvent(
+        {
+          user_email: 'test@test.org',
+          auth_email: 'testAuth@test.org',
+          auth_token: 'sampleAuthToken',
+          updates: { $set: { registration_status: status } },
+        },
+        '/update',
+        'POST'
+      );
+
+    const notComing = await main(toStatus('not_coming'), mockContext, mockCallback);
+    expect(notComing.statusCode).toBe(200);
+
+    const coming = await main(toStatus('coming'), mockContext, mockCallback);
+    expect(coming.statusCode).toBe(400);
+    expect(JSON.parse(coming.body).message).toBe('Invalid registration status update from confirmed to coming');
+  });
 });
