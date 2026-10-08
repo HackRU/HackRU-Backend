@@ -1,14 +1,14 @@
 import type { ValidatedEventAPIGatewayProxyEvent } from '@libs/api-gateway';
 import { middyfy } from '@libs/lambda';
 import schema from './schema';
-import { MongoDB, validateToken } from '../../util';
+import { ensureRoles, MongoDB, validateToken } from '../../util';
 
 const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const email = event.body.email.toLowerCase();
 
   try {
     // check token
-    const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
+    const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
     if (!isValidToken) {
       return {
         statusCode: 401,
@@ -21,6 +21,25 @@ const points: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     await db.connect();
     const users = db.getCollection('users');
     const pointsCollection = db.getCollection('f26-points');
+
+    // ensure that auth user can only have role director or organizer
+    const authUser = await users.findOne({ email: event.body.auth_email });
+    if (authUser) {
+      if (!ensureRoles(authUser.role, ['director', 'organizer']) && email !== event.body.auth_email) {
+        return {
+          statusCode: 401,
+          body: JSON.stringify({
+            statusCode: 401,
+            message: 'Unauthorized. Auth user is not an organizer/director.',
+          }),
+        };
+      }
+    } else {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }),
+      };
+    }
 
     // Make sure user exists
     const user = await users.findOne({ email: email });
