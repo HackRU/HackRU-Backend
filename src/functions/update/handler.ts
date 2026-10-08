@@ -9,7 +9,7 @@ import { validateEmail } from '../../helper';
 import { MongoDB, validateToken, ensureRoles } from '../../util';
 import { Document, WithId } from 'mongodb';
 
-const CHECK_IN_START_DATE = new Date('2025-10-04T10:30:00');
+const CHECK_IN_START_DATE = new Date('2026-10-10T10:30:00');
 const CHECK_IN_CUT_OFF = new Date(CHECK_IN_START_DATE.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days after check-in start
 
 const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
