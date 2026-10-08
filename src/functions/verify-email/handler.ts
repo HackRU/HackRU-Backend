@@ -32,12 +32,17 @@ const verifyEmail: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
       return {
         statusCode: 200,
-        body: JSON.stringify({ message: `HackRU account (${verifiedEmail}) email verified successfully.` }),
+        body: JSON.stringify({
+          message: `HackRU account (${verifiedEmail}) email verified successfully.`,
+        }),
       };
     } catch (error) {
       console.error('Error verifying email', error);
 
-      return { statusCode: 500, body: JSON.stringify({ message: 'Internal Server Error', error: error }) };
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ message: 'Internal Server Error', error: error }),
+      };
     }
   }
 
@@ -57,7 +62,9 @@ const verifyEmail: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     if (user.email_verified)
       return { statusCode: 400, body: JSON.stringify({ message: 'User email already verified' }) };
 
-    const verifyCode = jwt.sign({ email: email, id: user._id }, 'HRUV' + process.env.JWT_SECRET, { expiresIn: '3d' });
+    const verifyCode = jwt.sign({ email: email, id: user._id }, 'HRUV' + process.env.JWT_SECRET, {
+      expiresIn: '3d',
+    });
 
     const ses = new SESv2Client();
     const emailVerification = new SendEmailCommand({
@@ -83,7 +90,10 @@ const verifyEmail: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
   } catch (error) {
     console.error('Error verifying email', error);
 
-    return { statusCode: 500, body: JSON.stringify({ message: 'Internal Server Error', error: error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error', error: error }),
+    };
   }
 };
 

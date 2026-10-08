@@ -9,7 +9,12 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
   try {
     // validate auth token
     const validToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.email);
-    if (!validToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
+    if (!validToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }),
+      };
+    }
 
     // connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -20,7 +25,10 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     if (!userPoints || !userPoints.total_points) {
       return {
         statusCode: 404,
-        body: JSON.stringify({ statusCode: 404, message: 'User point balance information not found' }),
+        body: JSON.stringify({
+          statusCode: 404,
+          message: 'User point balance information not found',
+        }),
       };
     }
 
@@ -51,7 +59,10 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     if (pointsUsed > userPoints.total_points) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ statusCode: 403, message: 'Points distributed exceed user point total.' }),
+        body: JSON.stringify({
+          statusCode: 403,
+          message: 'Points distributed exceed user point total.',
+        }),
       };
     }
 
@@ -64,13 +75,19 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
       if (Number.isNaN(numVal)) {
         return {
           statusCode: 403,
-          body: JSON.stringify({ statusCode: 403, message: 'Requested point change is not a valid integer input' }),
+          body: JSON.stringify({
+            statusCode: 403,
+            message: 'Requested point change is not a valid integer input',
+          }),
         };
       }
       if (numVal >= 1000 || numVal <= -1000) {
         return {
           statusCode: 403,
-          body: JSON.stringify({ statusCode: 403, message: 'Requested point change is not in a valid point range' }),
+          body: JSON.stringify({
+            statusCode: 403,
+            message: 'Requested point change is not in a valid point range',
+          }),
         };
       }
     }
@@ -83,7 +100,10 @@ const updateBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (e
     };
   } catch (error) {
     console.error('Error updating', error);
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error }),
+    };
   }
 };
 

@@ -52,7 +52,10 @@ const discord: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event)
   } catch (error) {
     console.error('Error updating discord', error);
 
-    return { statusCode: 500, body: JSON.stringify({ message: 'Internal Server Error', error: error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error', error: error }),
+    };
   }
 };
 

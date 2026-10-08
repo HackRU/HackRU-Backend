@@ -8,8 +8,12 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
   try {
     // Validate auth token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
-    if (!isValidToken)
-      return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized - Invalid token' }) };
+    if (!isValidToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized - Invalid token' }),
+      };
+    }
 
     // Connect to database
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -19,18 +23,30 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
 
     // Check if auth user exists
     const authUser = await users.findOne({ email: event.body.auth_email.toLowerCase() });
-    if (!authUser)
-      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found' }) };
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'Auth user not found' }),
+      };
+    }
 
     // Check if team exists
     const team = await teams.findOne({ team_id: event.body.team_id });
-    if (!team) return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Team not found' }) };
+    if (!team) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'Team not found' }),
+      };
+    }
 
     // Check if team is active
     if (team.status !== 'Active') {
       return {
         statusCode: 400,
-        body: JSON.stringify({ statusCode: 400, message: 'Cannot remove members from disbanded team' }),
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Cannot remove members from disbanded team',
+        }),
       };
     }
 
@@ -49,7 +65,10 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     if (targetEmails.includes(event.body.auth_email.toLowerCase())) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ statusCode: 400, message: 'Team leader cannot remove themselves from the team' }),
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Team leader cannot remove themselves from the team',
+        }),
       };
     }
 
@@ -112,13 +131,20 @@ const teamsMemberRemoval: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Team members removed successfully', members_affected: membersAffected }),
+      body: JSON.stringify({
+        message: 'Team members removed successfully',
+        members_affected: membersAffected,
+      }),
     };
   } catch (error) {
     console.error('Error removing team members:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error: error.message }),
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal server error',
+        error: error.message,
+      }),
     };
   }
 };

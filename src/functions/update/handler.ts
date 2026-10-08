@@ -18,7 +18,12 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
   try {
     // validate auth token
     const validToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
-    if (!validToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
+    if (!validToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }),
+      };
+    }
 
     // connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -37,13 +42,22 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
           }),
         };
       }
-    } else return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }) };
+    } else {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }),
+      };
+    }
 
     // need to check if user_email exists in DB
     const updatedUser = await users.findOne({ email: event.body.user_email });
 
-    if (!updatedUser)
-      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'User to be updated not found.' }) };
+    if (!updatedUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'User to be updated not found.' }),
+      };
+    }
 
     //only director or organizer should be able to update registration status for specified status descriptions
     const registrationStatus = event.body.updates?.$set?.registration_status as string | undefined;
@@ -65,10 +79,17 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     // validate updates
     const validationResult = validateUpdates(event.body.updates, updatedUser.registration_status, updatedUser);
-    if (typeof validationResult === 'string')
-      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: validationResult }) };
-    else if (!validationResult)
-      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Bad updates.' }) };
+    if (typeof validationResult === 'string') {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: validationResult }),
+      };
+    } else if (!validationResult) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'Bad updates.' }),
+      };
+    }
 
     // add registered_at time if status is updated
     if (event.body.updates?.$set?.registration_status == 'registered')
@@ -98,10 +119,16 @@ const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
     //     .promise();
     // }
 
-    return { statusCode: 200, body: JSON.stringify({ statusCode: 200, message: 'User updated successfully' }) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ statusCode: 200, message: 'User updated successfully' }),
+    };
   } catch (error) {
     console.error('Error updating', error);
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error }),
+    };
   }
 };
 

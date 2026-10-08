@@ -64,13 +64,20 @@ const submitInterestForm: ValidatedEventAPIGatewayProxyEvent<typeof schema> = as
     // Return success
     return {
       statusCode: 200,
-      body: JSON.stringify({ message: 'Successful Form Submission', submissionId: result.insertedId }),
+      body: JSON.stringify({
+        message: 'Successful Form Submission',
+        submissionId: result.insertedId,
+      }),
     };
   } catch (error) {
     console.error('Error submitting interest form:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error: error.message }),
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal Server Error',
+        error: error.message,
+      }),
     };
   }
 };

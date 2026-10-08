@@ -7,7 +7,12 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
   try {
     // Check if token is valid
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
-    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statuscode: 401, message: 'Unauthorized' }) };
+    if (!isValidToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statuscode: 401, message: 'Unauthorized' }),
+      };
+    }
 
     // Connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -16,8 +21,12 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
 
     // Ensure auth user exists
     const authUser = await users.findOne({ email: event.body.auth_email });
-    if (!authUser)
-      return { statusCode: 404, body: JSON.stringify({ statuscode: 404, message: 'Auth user not found.' }) };
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statuscode: 404, message: 'Auth user not found.' }),
+      };
+    }
 
     // Ensure user has proper role
     const roles = ['hacker', 'director', 'organizer'];
@@ -41,7 +50,10 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
     ) {
       return {
         statusCode: 403,
-        body: JSON.stringify({ statusCode: 403, message: 'Hackers can only look up their own information.' }),
+        body: JSON.stringify({
+          statusCode: 403,
+          message: 'Hackers can only look up their own information.',
+        }),
       };
     }
 
@@ -49,22 +61,33 @@ const read: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) =>
     // eslint-disable-next-line @typescript-eslint/naming-convention
     if (!event.body.all) {
       const lookUpUser = await users.findOne({ email: lookupEmail }, { projection: { password: 0, _id: 0 } }); // exclude password and id
-      if (!lookUpUser)
-        return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Look-up user not found.' }) };
+      if (!lookUpUser) {
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ statusCode: 404, message: 'Look-up user not found.' }),
+        };
+      }
 
       // Return user data
       return { statusCode: 200, body: JSON.stringify(lookUpUser) };
     } else {
       const lookUpAllUsers = await users.find({}, { projection: { password: 0, _id: 0 } }).toArray(); // exclude password and id
-      if (!lookUpAllUsers)
-        return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Look-up all users not found.' }) };
+      if (!lookUpAllUsers) {
+        return {
+          statusCode: 404,
+          body: JSON.stringify({ statusCode: 404, message: 'Look-up all users not found.' }),
+        };
+      }
 
       // Return user data
       return { statusCode: 200, body: JSON.stringify(lookUpAllUsers) };
     }
   } catch (error) {
     console.error('Error reading user:', error);
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error }),
+    };
   }
 };
 

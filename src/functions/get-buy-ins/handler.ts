@@ -9,7 +9,12 @@ const getBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
   try {
     // check token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, email);
-    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
+    if (!isValidToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }),
+      };
+    }
 
     // Connect to DB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -31,7 +36,10 @@ const getBuyIns: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
 
     return { statusCode: 200, body: JSON.stringify({ statusCode: 200, buyIns: result }) };
   } catch (error) {
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }),
+    };
   }
 };
 

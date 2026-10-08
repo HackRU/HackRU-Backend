@@ -19,7 +19,10 @@ const leaderboard: APIGatewayProxyHandler = async () => {
     return { statusCode: 200, body: JSON.stringify(topPlayers) };
   } catch (error) {
     console.error('Error loading top 20', error);
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }),
+    };
   }
 };
 

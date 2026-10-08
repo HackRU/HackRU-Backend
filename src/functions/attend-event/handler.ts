@@ -11,7 +11,12 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
   try {
     // validate auth token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
-    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized.' }) };
+    if (!isValidToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized.' }),
+      };
+    }
 
     // Connect to MongoDB
     const db = MongoDB.getInstance(process.env.MONGO_URI);
@@ -21,18 +26,29 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     const attendEvent = await users.findOne({ email: event.body.qr });
 
     // If the user does not exist, return a 404
-    if (attendEvent === null)
-      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'User not found.' }) };
+    if (attendEvent === null) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'User not found.' }),
+      };
+    }
 
     // ensure that only directors/organizers (auth_email) can call this route
     const authUser = await users.findOne({ email: event.body.auth_email });
-    if (!authUser)
-      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }) };
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'Auth user not found.' }),
+      };
+    }
 
     if (!ensureRoles(authUser.role, ['director', 'organizer'])) {
       return {
         statusCode: 401,
-        body: JSON.stringify({ statusCode: 401, message: 'Only directors/organizers can call this endpoint.' }),
+        body: JSON.stringify({
+          statusCode: 401,
+          message: 'Only directors/organizers can call this endpoint.',
+        }),
       };
     }
 
@@ -128,7 +144,10 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     };
   } catch (error) {
     console.error('Error attending event:', error);
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal server error.', error }),
+    };
   }
 };
 

@@ -54,7 +54,10 @@ const forgotPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async 
   } catch (error) {
     console.error('Error generating password reset', error);
 
-    return { statusCode: 500, body: JSON.stringify({ message: 'Internal Server Error', error: error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ message: 'Internal Server Error', error: error }),
+    };
   }
 };
 
