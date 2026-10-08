@@ -99,7 +99,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     if (event.body.points) {
-      const points = db.getCollection('f25-points-syst');
+      const points = db.getCollection('f26-points');
       const userPoints = await points.findOne({ email: event.body.qr });
       if (!userPoints) {
         await points.insertOne({
@@ -111,13 +111,13 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
         });
       }
 
-      if (event.body.points < 0 && userPoints.balance + event.body.points < 0) {
+      if (event.body.points < 0 && (userPoints?.balance || 0) + event.body.points < 0) {
         return {
           statusCode: 409,
           body: JSON.stringify({
             statusCode: 409,
             message: 'User does not have enough points to check into event.',
-            balance: userPoints.balance,
+            balance: userPoints?.balance || 0,
           }),
         };
       }
