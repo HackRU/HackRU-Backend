@@ -5,5 +5,5 @@ export default {
     auth_email: { type: 'string', format: 'email' },
     email: { type: 'string', format: 'email' },
   },
-  required: ['auth_token', 'auth_email', 'email'],
+  required: ['auth_token', 'email'],
 } as const;
