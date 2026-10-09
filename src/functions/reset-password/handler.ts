@@ -17,8 +17,12 @@ const resetPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     const forgotPasswordDB = db.getCollection('forgot-password');
 
     const existingEmail = await forgotPasswordDB.findOne({ email: userEmail });
-    if (!existingEmail)
-      return { statusCode: 403, body: JSON.stringify({ message: 'You did not request a password change' }) };
+    if (!existingEmail) {
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ message: 'You did not request a password change' }),
+      };
+    }
 
     // check if resetToken is valid
     const isValid = await bcrypt.compare(event.body.reset_token, existingEmail.token);
@@ -47,7 +51,10 @@ const resetPassword: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (
     console.error('Error reseting password', error);
 
     // return a 500 Status code error
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }),
+    };
   }
 };
 

@@ -6,7 +6,7 @@ const leaderboard: APIGatewayProxyHandler = async () => {
   try {
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
-    const points = db.getCollection('f25-points-syst');
+    const points = db.getCollection('f26-points');
 
     const topPlayers = await points
       .aggregate([
@@ -19,7 +19,10 @@ const leaderboard: APIGatewayProxyHandler = async () => {
     return { statusCode: 200, body: JSON.stringify(topPlayers) };
   } catch (error) {
     console.error('Error loading top 20', error);
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error', error }),
+    };
   }
 };
 

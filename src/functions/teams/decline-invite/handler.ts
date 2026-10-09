@@ -17,7 +17,12 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
   // try to validate token
   try {
     const isValidToken = validateToken(event.body.authToken, process.env.JWT_SECRET, authEmail);
-    if (!isValidToken) return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }) };
+    if (!isValidToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized' }),
+      };
+    }
 
     const db = MongoDB.getInstance(process.env.MONGO_URI);
     await db.connect();
@@ -25,7 +30,12 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
 
     // find the user
     const user = await users.findOne({ email: authEmail });
-    if (!user) return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'User not found.' }) };
+    if (!user) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'User not found.' }),
+      };
+    }
 
     // get the user's pending invites list
     const pendingInvitations = user.team_info?.pending_invites || [];
@@ -34,7 +44,10 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
       // if that team's invite is NOT in the pending invites list
       return {
         statusCode: 400,
-        body: JSON.stringify({ statusCode: 400, message: 'No pending invitation found for this team' }),
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'No pending invitation found for this team',
+        }),
       };
     }
 
@@ -51,7 +64,10 @@ const declineInvitation: ValidatedEventAPIGatewayProxyEvent<typeof schema> = asy
     console.error('Error declining invite', error);
 
     // return a 500 Status code error
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error' }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error' }),
+    };
   }
 };
 

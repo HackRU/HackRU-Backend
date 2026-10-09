@@ -25,24 +25,39 @@ const authorize: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (even
       const hashedPassword = existingEmail.password.toString('utf8');
       const passwordMatch = await bcrypt.compare(userPassword, hashedPassword);
 
-      if (!passwordMatch)
-        return { statusCode: 403, body: JSON.stringify({ statusCode: 403, message: 'Wrong password' }) };
+      if (!passwordMatch) {
+        return {
+          statusCode: 403,
+          body: JSON.stringify({ statusCode: 403, message: 'Wrong password' }),
+        };
+      }
     } else {
       // user email doesn't exist
-      return { statusCode: 403, body: JSON.stringify({ statusCode: 403, message: 'Invalid email' }) };
+      return {
+        statusCode: 403,
+        body: JSON.stringify({ statusCode: 403, message: 'Invalid email' }),
+      };
     }
 
     // password match, now we build a JWT to use as an authentication token
 
     // builds token
-    const token = jwt.sign({ email: userEmail, id: existingEmail._id }, process.env.JWT_SECRET, { expiresIn: '3d' });
+    const token = jwt.sign({ email: userEmail, id: existingEmail._id }, process.env.JWT_SECRET, {
+      expiresIn: '3d',
+    });
 
-    return { statusCode: 200, body: JSON.stringify({ statusCode: 200, message: 'Authentication Successful', token }) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ statusCode: 200, message: 'Authentication Successful', token }),
+    };
   } catch (error) {
     console.error('Error authorizing user', error);
 
     // return a 500 Status code error
-    return { statusCode: 500, body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error' }) };
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ statusCode: 500, message: 'Internal Server Error' }),
+    };
   }
 };
 

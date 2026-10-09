@@ -14,6 +14,7 @@ jest.mock('../src/util', () => ({
     }),
   },
   validateToken: jest.fn(),
+  ensureRoles: jest.fn((roleDict, validRoles) => validRoles.some((role) => roleDict?.[role])),
 }));
 
 describe('Points endpoint', () => {
@@ -47,7 +48,8 @@ describe('Points endpoint', () => {
     const mockEvent = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
-    findOneMock.mockResolvedValue(null);
+    findOneMock.mockResolvedValueOnce({ email: 'nonexistent@email.com' }); // auth user
+    findOneMock.mockResolvedValueOnce(null); // user not found
 
     const result = await main(mockEvent, mockContext, jest.fn());
 
@@ -55,7 +57,7 @@ describe('Points endpoint', () => {
     expect(JSON.parse(result.body).message).toBe('User not found.');
   });
 
-  it('should return 404 if points not found for user', async () => {
+  it('should return 0 points if no points doc exists for user', async () => {
     const userData = {
       email: 'test@example.com',
       auth_token: 'validToken',
@@ -63,13 +65,17 @@ describe('Points endpoint', () => {
     const mockEvent = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOneMock = util.MongoDB.getInstance('uri').getCollection('').findOne as jest.Mock;
+    findOneMock.mockResolvedValueOnce({ email: 'test@example.com' }); // auth user
     findOneMock.mockResolvedValueOnce({ email: 'test@example.com' }); // user found
     findOneMock.mockResolvedValueOnce(null); // points not found
 
     const result = await main(mockEvent, mockContext, jest.fn());
 
-    expect(result.statusCode).toBe(404);
-    expect(JSON.parse(result.body).message).toBe('Points not found for this user.');
+    expect(result.statusCode).toBe(200);
+    const body = JSON.parse(result.body);
+    expect(body.balance).toBe(0);
+    expect(body.total_points).toBe(0);
+    expect(body.buy_ins).toEqual([]);
   });
 
   it('should return 200 with balance, total_points, and buy_ins for valid user', async () => {
@@ -80,6 +86,7 @@ describe('Points endpoint', () => {
     const mockEvent = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
+    findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // auth user
     findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // User exists
     findOneMock.mockResolvedValueOnce({
       email: 'valid@email.com',
@@ -111,6 +118,7 @@ describe('Points endpoint', () => {
     const mockEvent = createEvent(userData, path, httpMethod);
     (util.validateToken as jest.Mock).mockReturnValue(true);
     const findOneMock = util.MongoDB.getInstance('uri').getCollection('users').findOne as jest.Mock;
+    findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // auth user
     findOneMock.mockResolvedValueOnce({ email: 'valid@email.com' }); // User exists
     findOneMock.mockResolvedValueOnce({
       email: 'valid@email.com',

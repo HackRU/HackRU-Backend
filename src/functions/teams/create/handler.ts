@@ -9,13 +9,21 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
   try {
     // Validate auth token
     const isValidToken = validateToken(event.body.auth_token, process.env.JWT_SECRET, event.body.auth_email);
-    if (!isValidToken)
-      return { statusCode: 401, body: JSON.stringify({ statusCode: 401, message: 'Unauthorized - Invalid token' }) };
+    if (!isValidToken) {
+      return {
+        statusCode: 401,
+        body: JSON.stringify({ statusCode: 401, message: 'Unauthorized - Invalid token' }),
+      };
+    }
 
     // Validate team name
     const teamName = event.body.team_name.trim();
-    if (teamName.length === 0)
-      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Team name cannot be empty' }) };
+    if (teamName.length === 0) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'Team name cannot be empty' }),
+      };
+    }
 
     if (teamName.length > 50) {
       return {
@@ -44,8 +52,12 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     // Check if auth user exists
     const authUser = await users.findOne({ email: event.body.auth_email.toLowerCase() });
-    if (!authUser)
-      return { statusCode: 404, body: JSON.stringify({ statusCode: 404, message: 'Auth user not found' }) };
+    if (!authUser) {
+      return {
+        statusCode: 404,
+        body: JSON.stringify({ statusCode: 404, message: 'Auth user not found' }),
+      };
+    }
 
     // Check if auth user has valid registration status for team creation
     const validStatesForTeamCreation = ['registered', 'confirmation', 'coming'];
@@ -60,12 +72,20 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     }
 
     // Check if user already leads a team
-    if (authUser.team_info?.role === 'leader')
-      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'User already leads a team' }) };
+    if (authUser.team_info?.role === 'leader') {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'User already leads a team' }),
+      };
+    }
 
     // Check if user is already a member of a team
-    if (authUser.confirmed_team === true)
-      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'User is already part of a team' }) };
+    if (authUser.confirmed_team === true) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'User is already part of a team' }),
+      };
+    }
 
     // Validate all member emails exist using user-exists logic
     const memberEmails = event.body.members.map((email) => email.toLowerCase());
@@ -94,7 +114,11 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     if (invalidEmails.length > 0) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ statusCode: 400, message: 'Some users do not exist', invalid_emails: invalidEmails }),
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Some users do not exist',
+          invalid_emails: invalidEmails,
+        }),
       };
     }
 
@@ -125,7 +149,10 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     if (memberEmails.length > 3) {
       return {
         statusCode: 400,
-        body: JSON.stringify({ statusCode: 400, message: 'Team size cannot exceed 4 members (including leader)' }),
+        body: JSON.stringify({
+          statusCode: 400,
+          message: 'Team size cannot exceed 4 members (including leader)',
+        }),
       };
     }
 
@@ -180,7 +207,11 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       console.error('Transaction failed:', transactionError);
       return {
         statusCode: 500,
-        body: JSON.stringify({ statusCode: 500, message: 'Failed to create team', error: transactionError.message }),
+        body: JSON.stringify({
+          statusCode: 500,
+          message: 'Failed to create team',
+          error: transactionError.message,
+        }),
       };
     } finally {
       await session.endSession();
@@ -188,13 +219,21 @@ const teamsCreate: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
 
     return {
       statusCode: 200,
-      body: JSON.stringify({ statusCode: 200, message: 'Team created successfully', team_id: teamId }),
+      body: JSON.stringify({
+        statusCode: 200,
+        message: 'Team created successfully',
+        team_id: teamId,
+      }),
     };
   } catch (error) {
     console.error('Error creating team:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ statusCode: 500, message: 'Internal server error', error: error.message }),
+      body: JSON.stringify({
+        statusCode: 500,
+        message: 'Internal server error',
+        error: error.message,
+      }),
     };
   }
 };

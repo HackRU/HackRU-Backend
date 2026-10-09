@@ -12,12 +12,20 @@ import { validateEmail } from '../../helper';
 const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   const validRegistrationTime = registrationTime();
   //check link
-  if (!validRegistrationTime)
-    return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Registration is closed!' }) };
+  if (!validRegistrationTime) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ statusCode: 400, message: 'Registration is closed!' }),
+    };
+  }
 
   const uEmail = event.body.email.toLowerCase();
-  if (!validateEmail(uEmail))
-    return { statusCode: 403, body: JSON.stringify({ statusCode: 403, message: 'Improper Email format' }) };
+  if (!validateEmail(uEmail)) {
+    return {
+      statusCode: 403,
+      body: JSON.stringify({ statusCode: 403, message: 'Improper Email format' }),
+    };
+  }
 
   let password = event.body.password;
 
@@ -34,7 +42,10 @@ const create: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) 
 
     if (existingUser) {
       //link
-      return { statusCode: 400, body: JSON.stringify({ statusCode: 400, message: 'Duplicate user!' }) };
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'Duplicate user!' }),
+      };
     }
     // Check if interest form exists, if so retrieve data from the most recent submission
     const interestForms = db.getCollection('interest-forms');
