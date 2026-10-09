@@ -9,8 +9,10 @@ import { validateEmail } from '../../helper';
 import { MongoDB, validateToken, ensureRoles } from '../../util';
 import { Document, WithId } from 'mongodb';
 
-const CHECK_IN_START_DATE = new Date('2026-10-10T10:30:00');
+// lambdas run in UTC, so the offset pins this to Eastern time
+const CHECK_IN_START_DATE = new Date('2026-10-10T10:30:00-04:00');
 const CHECK_IN_CUT_OFF = new Date(CHECK_IN_START_DATE.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days after check-in start
+const toEastern = (date: Date) => `${date.toLocaleString('en-US', { timeZone: 'America/New_York' })} ET`;
 
 const update: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (event) => {
   // if user email = auth email, you're updating auth user
@@ -179,7 +181,7 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
 
       if (goalStatus === 'checked_in') {
         if (currentDate > CHECK_IN_CUT_OFF)
-          return `Registration is closed. The cutoff date was ${CHECK_IN_CUT_OFF.toLocaleString()}.`;
+          return `Registration is closed. The cutoff date was ${toEastern(CHECK_IN_CUT_OFF)}.`;
       }
 
       const atleastRegistered = ['confirmed', 'waitlist', 'registered', 'coming'].includes(
@@ -188,7 +190,7 @@ function validateUpdates(updates: Updates, registrationStatus?: string, user?: W
       if (goalStatus === 'checked_in' && atleastRegistered) {
         if (currentDate >= CHECK_IN_START_DATE || registrationStatus === 'confirmed') return true;
         else
-          return `Current status of this user is ${registrationStatus}. Check-in will be available after ${CHECK_IN_START_DATE.toLocaleString()}.`;
+          return `Current status of this user is ${registrationStatus}. Check-in will be available after ${toEastern(CHECK_IN_START_DATE)}.`;
       }
 
       if (!isValidRegistrationStatusUpdate(registrationStatus || 'unregistered', goalStatus))

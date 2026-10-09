@@ -65,72 +65,64 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
     // conditions to check a user into events during hackathon
     const hackEvent = event.body.event;
 
+    // mongo reads a dot as a nested path and a leading $ as an operator
+    if (hackEvent.includes('.') || hackEvent.startsWith('$')) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ statusCode: 400, message: 'Event name cannot contain "." or start with "$".' }),
+      };
+    }
+
     // gets the current time
     const currentTime = new Date().toISOString();
+    const attendance = attendEvent.day_of?.event?.[hackEvent]?.attend ?? 0;
 
-    // if never attended this event before
-    if (attendEvent.day_of?.event?.[hackEvent] === undefined) {
-      await users.updateOne(
-        { email: event.body.qr },
-        {
-          $set: { [`day_of.event.${hackEvent}.attend`]: 1 },
-          $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
-        }
-      );
-    } else if (attendEvent.day_of.event[hackEvent].attend >= event.body.limit) {
-      // if attended this event the max times allowed as per limit
+    // if attended this event the max times allowed as per limit
+    if (attendance > 0 && attendance >= event.body.limit) {
       return {
         statusCode: 409,
         body: JSON.stringify({
           statusCode: 409,
           message: 'User already checked into event.',
-          attendance: attendEvent.day_of.event[hackEvent].attend,
+          attendance,
         }),
       };
-    } else {
-      // if can attend this event more than once and user has attended before
-      await users.updateOne(
-        { email: event.body.qr },
-        {
-          $inc: { [`day_of.event.${hackEvent}.attend`]: 1 },
-          $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
-        }
-      );
     }
 
-    if (event.body.points) {
-      const points = db.getCollection('f26-points');
+    // check the balance before recording anything, so a refused purchase leaves no attendance behind
+    const points = db.getCollection('f26-points');
+    if (event.body.points < 0) {
       const userPoints = await points.findOne({ email: event.body.qr });
-      if (!userPoints) {
-        await points.insertOne({
-          email: event.body.qr,
-          first_name: attendEvent.first_name,
-          last_name: attendEvent.last_name,
-          balance: 0,
-          total_points: 0,
-        });
-      }
-
-      if (event.body.points < 0 && (userPoints?.balance || 0) + event.body.points < 0) {
+      if ((userPoints?.balance ?? 0) + event.body.points < 0) {
         return {
           statusCode: 409,
           body: JSON.stringify({
             statusCode: 409,
             message: 'User does not have enough points to check into event.',
-            balance: userPoints?.balance || 0,
+            balance: userPoints?.balance ?? 0,
           }),
         };
       }
+    }
 
-      if (event.body.points < 0)
-        // note: the operation is $inc but since points is negative, it will still subtract
-        await points.updateOne({ email: event.body.qr }, { $inc: { balance: event.body.points } });
-      else if (event.body.points > 0) {
-        await points.updateOne(
-          { email: event.body.qr },
-          { $inc: { balance: event.body.points, total_points: event.body.points } }
-        );
+    await users.updateOne(
+      { email: event.body.qr },
+      {
+        $inc: { [`day_of.event.${hackEvent}.attend`]: 1 },
+        $push: { [`day_of.event.${hackEvent}.time`]: currentTime },
       }
+    );
+
+    if (event.body.points) {
+      // note: the operation is $inc but since points is negative, it will still subtract
+      await points.updateOne(
+        { email: event.body.qr },
+        {
+          $inc: { balance: event.body.points, total_points: Math.max(event.body.points, 0) },
+          $setOnInsert: { first_name: attendEvent.first_name, last_name: attendEvent.last_name },
+        },
+        { upsert: true }
+      );
     }
 
     // return success case
@@ -139,7 +131,7 @@ const attendEvent: ValidatedEventAPIGatewayProxyEvent<typeof schema> = async (ev
       body: JSON.stringify({
         statusCode: 200,
         message: 'user successfully checked into event',
-        attendance: attendEvent.day_of.event?.[hackEvent]?.attend ? attendEvent.day_of.event[hackEvent].attend + 1 : 1,
+        attendance: attendance + 1,
       }),
     };
   } catch (error) {
